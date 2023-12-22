@@ -6,6 +6,9 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -17,9 +20,9 @@ public class User {
     private LocalDate dateOfBirth;
     private String job;
     private float monthlyIncome;
-    private Bank bank;
-    private CreditAccount creditAccount;
-    private PaymentAccount paymentAccount;
+    private HashSet<String> bankNames;
+    private HashMap<UUID, CreditAccount> creditAccounts;
+    private HashMap<UUID, PaymentAccount> paymentAccounts;
     private float creditScore;
 
     public User(@NonNull String fullName, @NonNull LocalDate dateOfBirth, @NonNull String job) {
@@ -28,18 +31,18 @@ public class User {
         this.dateOfBirth = dateOfBirth;
         this.job = job;
         this.monthlyIncome = ThreadLocalRandom.current().nextFloat(0, 10000.0f);
-        this.bank = null;
-        this.creditAccount = null;
-        this.paymentAccount = null;
-        this.creditScore = (this.monthlyIncome % 1000.0f) * 100.0f + 100.0f;
+        this.bankNames = new HashSet<>();
+        this.creditAccounts = new HashMap<>();
+        this.paymentAccounts = new HashMap<>();
+        this.creditScore = (((int) this.monthlyIncome) / 1000) * 100.0f + 100.0f;
     }
 
     @Override
     public String toString() {
         return String.format("User(uuid=%s, fullName=%s, dateOfBirth=%s, job=%s, monthlyIncome=%f, " +
-                        "bank=%s, creditScore=%f)",
+                        "bankNames=%s, creditAccountCount=%d, paymentAccountCount=%d, creditScore=%f)",
                 uuid.toString(), fullName, dateOfBirth.toString(), job, monthlyIncome,
-                bank == null ? "" : bank.toString(), creditScore
+                bankNames.toString(), creditAccounts.size(), paymentAccounts.size(), creditScore
         );
     }
 }

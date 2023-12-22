@@ -5,4 +5,6 @@ import tech.reliab.course.toryanikiv.bank.entity.User;
 
 public interface UserService {
     boolean changeJob(@NonNull User user, @NonNull String job);
+    void printPaymentAccounts(@NonNull User user);
+    void printCreditAccounts(@NonNull User user);
 }

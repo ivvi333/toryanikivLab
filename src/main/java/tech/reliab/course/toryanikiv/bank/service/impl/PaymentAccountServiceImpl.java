@@ -1,71 +1,92 @@
 package tech.reliab.course.toryanikiv.bank.service.impl;
 
 import lombok.NonNull;
+import tech.reliab.course.toryanikiv.bank.dal.impl.*;
 import tech.reliab.course.toryanikiv.bank.entity.*;
 import tech.reliab.course.toryanikiv.bank.service.PaymentAccountService;
 
 import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 public class PaymentAccountServiceImpl implements PaymentAccountService {
-    @Override
-    public boolean openPaymentAccount(@NonNull User user, @NonNull Bank bank) {
-        if (user.getPaymentAccount() != null) {
-            return false;
-        }
+    private final PaymentAccountDao paymentAccountDao;
 
+    public PaymentAccountServiceImpl(PaymentAccountDao paymentAccountDao) {
+        this.paymentAccountDao = paymentAccountDao;
+    }
+
+    @Override
+    public UUID openPaymentAccount(@NonNull UserDao userDao, @NonNull User user, @NonNull BankDao bankDao, @NonNull Bank bank) {
         PaymentAccount paymentAccount = new PaymentAccount(user, bank);
 
-        user.setPaymentAccount(paymentAccount);
-        user.setBank(bank);
+        user.getPaymentAccounts().put(paymentAccount.getUuid(), paymentAccount);
+        user.getBankNames().add(bank.getName());
 
-        bank.setClientCount(bank.getClientCount() + 1);
+        bank.getClients().add(user);
 
-        return true;
+        userDao.update(user);
+        bankDao.update(bank);
+
+        return paymentAccountDao.save(paymentAccount);
     }
 
     @Override
-    public boolean closePaymentAccount(@NonNull User user) {
-        if (user.getPaymentAccount() == null) {
+    public boolean closePaymentAccount(@NonNull PaymentAccount paymentAccount, @NonNull UserDao userDao, @NonNull User user, @NonNull BankDao bankDao, @NonNull Bank bank) {
+        if (!user.getPaymentAccounts().containsValue(paymentAccount)) {
             return false;
         }
 
-        user.setPaymentAccount(null);
-        user.getBank().setClientCount(user.getBank().getClientCount() - 1);
-        user.setBank(null);
+        paymentAccountDao.delete(paymentAccount);
+
+        user.getPaymentAccounts().remove(paymentAccount.getUuid());
+        boolean isBankInUse = user.getPaymentAccounts().entrySet().stream()
+                .anyMatch(o -> Objects.equals(o.getValue().getBank().getName(), paymentAccount.getBank().getName()));
+        if (!isBankInUse) {
+            user.getBankNames().remove(paymentAccount.getBank().getName());
+
+            bank.getClients().remove(user);
+            bankDao.update(bank);
+        }
+
+        userDao.update(user);
 
         return true;
     }
 
     @Override
-    public boolean deposit(@NonNull PaymentAccount paymentAccount, @NonNull BigDecimal value, @NonNull BankAtm bankAtm) {
+    public boolean deposit(@NonNull PaymentAccount paymentAccount, @NonNull BigDecimal value, @NonNull BankAtmDao bankAtmDao, @NonNull BankAtm bankAtm) {
         if (!bankAtm.isDepositAvailable()) {
             return false;
         }
 
         paymentAccount.setBalance(paymentAccount.getBalance().add(value));
+        paymentAccountDao.update(paymentAccount);
 
         bankAtm.setTotalMoney(bankAtm.getTotalMoney().add(value));
-        bankAtm.getBank().setTotalMoney(bankAtm.getBank().getTotalMoney().add(value));
+        bankAtmDao.update(bankAtm);
 
         return true;
     }
 
     @Override
-    public boolean deposit(@NonNull PaymentAccount paymentAccount, @NonNull BigDecimal value, @NonNull BankOffice bankOffice) {
+    public boolean deposit(@NonNull PaymentAccount paymentAccount, @NonNull BigDecimal value, @NonNull BankOfficeDao bankOfficeDao, @NonNull BankOffice bankOffice) {
         if (!bankOffice.isDepositAvailable()) {
             return false;
         }
 
         paymentAccount.setBalance(paymentAccount.getBalance().add(value));
+        paymentAccountDao.update(paymentAccount);
 
         bankOffice.setTotalMoney(bankOffice.getTotalMoney().add(value));
-        bankOffice.getBank().setTotalMoney(bankOffice.getBank().getTotalMoney().add(value));
+        bankOfficeDao.update(bankOffice);
 
         return true;
     }
 
     @Override
-    public boolean withdraw(@NonNull PaymentAccount paymentAccount, @NonNull BigDecimal value, @NonNull BankAtm bankAtm) {
+    public boolean withdraw(@NonNull PaymentAccount paymentAccount, @NonNull BigDecimal value, @NonNull BankAtmDao bankAtmDao, @NonNull BankAtm bankAtm) {
         if (!bankAtm.isWithdrawAvailable() || bankAtm.getTotalMoney().compareTo(value) < 0
             || paymentAccount.getBalance().compareTo(value) < 0)
         {
@@ -73,19 +94,20 @@ public class PaymentAccountServiceImpl implements PaymentAccountService {
         }
 
         paymentAccount.setBalance(paymentAccount.getBalance().subtract(value));
+        paymentAccountDao.update(paymentAccount);
 
         bankAtm.setTotalMoney(bankAtm.getTotalMoney().subtract(value));
         if (bankAtm.getTotalMoney().compareTo(BigDecimal.ZERO) == 0) {
             bankAtm.setStatus(BankAtm.BankAtmStatus.OUT_OF_CASH);
             bankAtm.setWithdrawAvailable(false);
         }
-        bankAtm.getBank().setTotalMoney(bankAtm.getBank().getTotalMoney().subtract(value));
+        bankAtmDao.update(bankAtm);
 
         return true;
     }
 
     @Override
-    public boolean withdraw(@NonNull PaymentAccount paymentAccount, @NonNull BigDecimal value, @NonNull BankOffice bankOffice) {
+    public boolean withdraw(@NonNull PaymentAccount paymentAccount, @NonNull BigDecimal value, @NonNull BankOfficeDao bankOfficeDao, @NonNull BankOffice bankOffice) {
         if (!bankOffice.isWithdrawAvailable() || bankOffice.getTotalMoney().compareTo(value) < 0
                 || paymentAccount.getBalance().compareTo(value) < 0)
         {
@@ -93,12 +115,13 @@ public class PaymentAccountServiceImpl implements PaymentAccountService {
         }
 
         paymentAccount.setBalance(paymentAccount.getBalance().subtract(value));
+        paymentAccountDao.update(paymentAccount);
 
         bankOffice.setTotalMoney(bankOffice.getTotalMoney().subtract(value));
         if (bankOffice.getTotalMoney().compareTo(BigDecimal.ZERO) == 0) {
             bankOffice.setWithdrawAvailable(false);
         }
-        bankOffice.getBank().setTotalMoney(bankOffice.getBank().getTotalMoney().subtract(value));
+        bankOfficeDao.update(bankOffice);
 
         return true;
     }
