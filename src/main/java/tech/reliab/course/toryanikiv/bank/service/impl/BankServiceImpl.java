@@ -18,12 +18,16 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public boolean addOffice(@NonNull Bank bank, @NonNull BankOfficeDao bankOfficeDao, @NonNull BankOffice bankOffice) {
+    public boolean addOffice(@NonNull Bank bank, @NonNull BankOfficeDao bankOfficeDao, @NonNull BankOffice bankOffice, @NonNull BigDecimal initialTotalMoney) {
+        if (bank.getTotalMoney().compareTo(initialTotalMoney) < 0) {
+            return false;
+        }
+
         bankOffice.setBank(bank);
         bankOffice.setAtmPlaceable(true);
-        bankOffice.setTotalMoney(bank.getTotalMoney());
+        bankOffice.setTotalMoney(initialTotalMoney);
 
-        BankOfficeService bankOfficeService = new BankOfficeServiceImpl(bankOfficeDao);
+        BankOfficeService bankOfficeService = new BankOfficeServiceImpl(bankOfficeDao, bankDao);
         if (!bankOfficeService.open(bankOffice)) {
             return false;
         }
@@ -31,6 +35,7 @@ public class BankServiceImpl implements BankService {
         bank.getBankOffices().add(bankOffice);
 
         bankDao.update(bank);
+        bankOfficeDao.update(bankOffice);
 
         return true;
     }
@@ -39,9 +44,11 @@ public class BankServiceImpl implements BankService {
     public boolean deleteOffice(@NonNull Bank bank, @NonNull BankOfficeDao bankOfficeDao, @NonNull BankOffice bankOffice) {
         bankOffice.setBank(null);
         bankOffice.setAtmPlaceable(false);
+
+        bank.setTotalMoney(bank.getTotalMoney().add(bankOffice.getTotalMoney()));
         bankOffice.setTotalMoney(BigDecimal.ZERO);
 
-        BankOfficeService bankOfficeService = new BankOfficeServiceImpl(bankOfficeDao);
+        BankOfficeService bankOfficeService = new BankOfficeServiceImpl(bankOfficeDao, bankDao);
         if (!bankOfficeService.close(bankOffice)) {
             return false;
         }
@@ -49,6 +56,7 @@ public class BankServiceImpl implements BankService {
         bank.getBankOffices().remove(bankOffice);
 
         bankDao.update(bank);
+        bankOfficeDao.update(bankOffice);
 
         return true;
     }

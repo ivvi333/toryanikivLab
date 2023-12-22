@@ -20,9 +20,9 @@ public class Main {
         CreditAccountDao creditAccountDao = new CreditAccountDao();
 
         BankService bankService = new BankServiceImpl(bankDao);
-        BankOfficeService bankOfficeService = new BankOfficeServiceImpl(bankOfficeDao);
-        PaymentAccountService paymentAccountService = new PaymentAccountServiceImpl(paymentAccountDao);
-        CreditAccountService creditAccountService = new CreditAccountServiceImpl(creditAccountDao);
+        BankOfficeService bankOfficeService = new BankOfficeServiceImpl(bankOfficeDao, bankDao);
+        PaymentAccountService paymentAccountService = new PaymentAccountServiceImpl(paymentAccountDao, bankDao, userDao, bankOfficeDao, bankAtmDao);
+        CreditAccountService creditAccountService = new CreditAccountServiceImpl(creditAccountDao, paymentAccountDao, bankDao, userDao);
 
         final int bankCount = 5, officeCount = 3, personCount = 5, accountCount = 2;
 
@@ -33,7 +33,7 @@ public class Main {
             for (int officeID = bankID * officeCount; officeID < bankID * officeCount + officeCount; officeID++) {
                 BankOffice bankOffice = new BankOffice(String.format("Test bank office %d", officeID), String.format("Test st. %d", officeID), BigDecimal.valueOf(5000));
                 bankOfficeDao.save(bankOffice);
-                bankService.addOffice(bank, bankOfficeDao, bankOffice);
+                bankService.addOffice(bank, bankOfficeDao, bankOffice, BigDecimal.valueOf(2000));
 
                 Employee banker = new Employee(String.format("Banker %d", officeID),
                         LocalDate.now().minusYears(30).plusDays(officeID));
@@ -62,7 +62,7 @@ public class Main {
 
                 BankAtm bankAtm = new BankAtm(String.format("Test bank ATM %d", officeID), BigDecimal.valueOf(1000));
                 bankAtmDao.save(bankAtm);
-                bankOfficeService.addAtm(bankOffice, bankAtmDao, bankAtm, teller);
+                bankOfficeService.addAtm(bankOffice, bankAtmDao, bankAtm, teller, BigDecimal.valueOf(1000));
 
                 for (int personID = officeID * personCount; personID < officeID * personCount + personCount; personID++) {
                     User user = new User(String.format("User %d", personID),
@@ -70,8 +70,8 @@ public class Main {
                     userDao.save(user);
 
                     for (int accountID = personID * accountCount; accountID < personID * accountCount + accountCount; accountID++) {
-                        UUID paymentAccountUUID = paymentAccountService.openPaymentAccount(userDao, user, bankDao, bank);
-                        creditAccountService.openCreditAccount(userDao, user, bankDao, bank, assistant,
+                        UUID paymentAccountUUID = paymentAccountService.openPaymentAccount(user, bank);
+                        creditAccountService.openCreditAccount(user, bank, assistant,
                                 paymentAccountDao.getByUUID(paymentAccountUUID).get(),
                                 LocalDate.now(), 4, BigDecimal.valueOf(1000));
                     }

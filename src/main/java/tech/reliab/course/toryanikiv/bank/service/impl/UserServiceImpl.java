@@ -1,6 +1,7 @@
 package tech.reliab.course.toryanikiv.bank.service.impl;
 
 import lombok.NonNull;
+import tech.reliab.course.toryanikiv.bank.dal.impl.BankDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.UserDao;
 import tech.reliab.course.toryanikiv.bank.entity.User;
 import tech.reliab.course.toryanikiv.bank.service.UserService;
@@ -9,9 +10,11 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class UserServiceImpl implements UserService {
     private final UserDao userDao;
+    private final BankDao bankDao;
 
-    public UserServiceImpl(UserDao userDao) {
+    public UserServiceImpl(UserDao userDao, BankDao bankDao) {
         this.userDao = userDao;
+        this.bankDao = bankDao;
     }
 
     @Override
@@ -21,6 +24,7 @@ public class UserServiceImpl implements UserService {
         user.setCreditScore(((int) user.getMonthlyIncome() / 1000) * 100.0f + 100.0f);
 
         userDao.update(user);
+        bankDao.getAll().filter(bank -> bank.getClients().contains(user)).forEach(bankDao::update);
 
         return true;
     }

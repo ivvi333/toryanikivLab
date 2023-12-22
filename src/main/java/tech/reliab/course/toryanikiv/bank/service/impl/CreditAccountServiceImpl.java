@@ -3,6 +3,7 @@ package tech.reliab.course.toryanikiv.bank.service.impl;
 import lombok.NonNull;
 import tech.reliab.course.toryanikiv.bank.dal.impl.BankDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.CreditAccountDao;
+import tech.reliab.course.toryanikiv.bank.dal.impl.PaymentAccountDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.UserDao;
 import tech.reliab.course.toryanikiv.bank.entity.*;
 import tech.reliab.course.toryanikiv.bank.service.CreditAccountService;
@@ -13,14 +14,19 @@ import java.util.UUID;
 
 public class CreditAccountServiceImpl implements CreditAccountService {
     private final CreditAccountDao creditAccountDao;
+    private final PaymentAccountDao paymentAccountDao;
+    private final BankDao bankDao;
+    private final UserDao userDao;
 
-    public CreditAccountServiceImpl(CreditAccountDao creditAccountDao) {
+    public CreditAccountServiceImpl(CreditAccountDao creditAccountDao, PaymentAccountDao paymentAccountDao, BankDao bankDao, UserDao userDao) {
         this.creditAccountDao = creditAccountDao;
+        this.paymentAccountDao = paymentAccountDao;
+        this.bankDao = bankDao;
+        this.userDao = userDao;
     }
 
     @Override
-    public UUID openCreditAccount(@NonNull UserDao userDao, @NonNull User user, @NonNull BankDao bankDao, @NonNull Bank bank,
-                                  @NonNull Employee creditAssistant, @NonNull PaymentAccount paymentAccount,
+    public UUID openCreditAccount(@NonNull User user, @NonNull Bank bank, @NonNull Employee creditAssistant, @NonNull PaymentAccount paymentAccount,
                                   @NonNull LocalDate creditOpeningDate, @NonNull int creditDurationInMonths, @NonNull BigDecimal creditAmount)
     {
         if (!user.getPaymentAccounts().containsValue(paymentAccount)
@@ -33,17 +39,18 @@ public class CreditAccountServiceImpl implements CreditAccountService {
         CreditAccount creditAccount = new CreditAccount(user, bank, creditAssistant, paymentAccount, creditOpeningDate, creditDurationInMonths, creditAmount);
 
         bank.setTotalMoney(bank.getTotalMoney().subtract(creditAmount));
-        bankDao.update(bank);
 
         user.getCreditAccounts().put(creditAccount.getUuid(), creditAccount);
         user.setCreditScore(user.getCreditScore() - 10f);
+
         userDao.update(user);
+        bankDao.update(bank);
 
         return creditAccountDao.save(creditAccount);
     }
 
     @Override
-    public boolean closeCreditAccount(@NonNull CreditAccount creditAccount, @NonNull UserDao userDao, @NonNull User user, @NonNull LocalDate currDate) {
+    public boolean closeCreditAccount(@NonNull CreditAccount creditAccount, @NonNull User user, @NonNull LocalDate currDate) {
         if (!user.getCreditAccounts().containsValue(creditAccount) ||
                 user.getCreditAccounts().get(creditAccount.getUuid()).getCreditClosingDate() != currDate)
         {
@@ -54,7 +61,9 @@ public class CreditAccountServiceImpl implements CreditAccountService {
 
         user.getCreditAccounts().remove(creditAccount.getUuid());
         user.setCreditScore(user.getCreditScore() + 10f);
+
         userDao.update(user);
+        bankDao.getAll().filter(bank -> bank.getClients().contains(user)).forEach(bankDao::update);
 
         return true;
     }
