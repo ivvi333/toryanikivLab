@@ -2,6 +2,7 @@ package tech.reliab.course.toryanikiv.bank.service.impl;
 
 import lombok.NonNull;
 import tech.reliab.course.toryanikiv.bank.dal.impl.BankAtmDao;
+import tech.reliab.course.toryanikiv.bank.dal.impl.BankDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.BankOfficeDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.EmployeeDao;
 import tech.reliab.course.toryanikiv.bank.entity.BankAtm;
@@ -15,14 +16,20 @@ import java.math.BigDecimal;
 
 public class BankOfficeServiceImpl implements BankOfficeService {
     private final BankOfficeDao bankOfficeDao;
+    private final BankDao bankDao;
 
-    public BankOfficeServiceImpl(@NonNull BankOfficeDao bankOfficeDao) {
+    public BankOfficeServiceImpl(@NonNull BankOfficeDao bankOfficeDao, BankDao bankDao) {
         this.bankOfficeDao = bankOfficeDao;
+        this.bankDao = bankDao;
     }
 
     @Override
-    public boolean addAtm(@NonNull BankOffice bankOffice, @NonNull BankAtmDao bankAtmDao, @NonNull BankAtm bankAtm, @NonNull Employee operator) {
-        if (!bankOffice.isAtmPlaceable() || bankOffice.getBank() == null) {
+    public boolean addAtm(@NonNull BankOffice bankOffice, @NonNull BankAtmDao bankAtmDao, @NonNull BankAtm bankAtm,
+                          @NonNull Employee operator, @NonNull BigDecimal initialTotalMoney)
+    {
+        if (!bankOffice.isAtmPlaceable() || bankOffice.getBank() == null
+            || bankOffice.getBank().getTotalMoney().compareTo(initialTotalMoney) < 0)
+        {
             return false;
         }
 
@@ -30,17 +37,20 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         bankAtm.setBank(bankOffice.getBank());
         bankAtm.setBankOffice(bankOffice);
         bankAtm.setOperator(operator);
-        bankAtm.setTotalMoney(bankOffice.getTotalMoney());
+        bankAtm.setTotalMoney(initialTotalMoney);
 
-        BankAtmService bankAtmService = new BankAtmServiceImpl(bankAtmDao);
+        BankAtmService bankAtmService = new BankAtmServiceImpl(bankAtmDao, bankDao, bankOfficeDao);
         if (!bankAtmService.openAfterMaintenance(bankAtm)) {
             return false;
         }
 
         bankOffice.getBankAtms().add(bankAtm);
+
         bankOffice.getBank().setAtmCount(bankOffice.getBank().getAtmCount() + 1);
 
         bankOfficeDao.update(bankOffice);
+        bankDao.update(bankOffice.getBank());
+        bankAtmDao.update(bankAtm);
 
         return true;
     }
@@ -53,7 +63,7 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         bankAtm.setOperator(null);
         bankAtm.setTotalMoney(BigDecimal.ZERO);
 
-        BankAtmService bankAtmService = new BankAtmServiceImpl(bankAtmDao);
+        BankAtmService bankAtmService = new BankAtmServiceImpl(bankAtmDao, bankDao, bankOfficeDao);
         if (!bankAtmService.closeForMaintenance(bankAtm)) {
             return false;
         }
@@ -62,6 +72,8 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         bankOffice.getBank().setAtmCount(bankOffice.getBank().getAtmCount() - 1);
 
         bankOfficeDao.update(bankOffice);
+        bankDao.update(bankOffice.getBank());
+        bankAtmDao.update(bankAtm);
 
         return true;
     }
@@ -75,7 +87,7 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         employee.setBank(bankOffice.getBank());
         employee.setBankOffice(bankOffice);
 
-        EmployeeService employeeService = new EmployeeServiceImpl(employeeDao);
+        EmployeeService employeeService = new EmployeeServiceImpl(employeeDao, bankDao, bankOfficeDao);
         if (!employeeService.changeOccupation(employee, employeeOccupation)) {
             return false;
         }
@@ -84,6 +96,8 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         bankOffice.getBank().setEmployeeCount(bankOffice.getBank().getEmployeeCount() + 1);
 
         bankOfficeDao.update(bankOffice);
+        bankDao.update(bankOffice.getBank());
+        employeeDao.update(employee);
 
         return true;
     }
@@ -105,6 +119,8 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         bankOffice.getBank().setEmployeeCount(bankOffice.getBank().getEmployeeCount() - 1);
 
         bankOfficeDao.update(bankOffice);
+        bankDao.update(bankOffice.getBank());
+        employeeDao.update(employee);
 
         return true;
     }
@@ -117,6 +133,7 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         bankOffice.setOpen(false);
 
         bankOfficeDao.update(bankOffice);
+        bankDao.update(bankOffice.getBank());
 
         return true;
     }
@@ -129,6 +146,7 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         bankOffice.setOpen(true);
 
         bankOfficeDao.update(bankOffice);
+        bankDao.update(bankOffice.getBank());
 
         return true;
     }

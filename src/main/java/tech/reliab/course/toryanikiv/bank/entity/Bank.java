@@ -33,7 +33,7 @@ public class Bank {
         this.employeeCount = 0;
         this.clients = new HashSet<>();
         this.rating = ThreadLocalRandom.current().nextInt(0, 101);
-        this.totalMoney = BigDecimal.valueOf(ThreadLocalRandom.current().nextDouble(10000.0, 1000000.0)).setScale(2, RoundingMode.DOWN);
+        this.totalMoney = BigDecimal.valueOf(ThreadLocalRandom.current().nextDouble(100000.0, 1000000.0)).setScale(2, RoundingMode.DOWN);
         this.interestRate = ThreadLocalRandom.current().nextFloat(1.0F, 21.5F - 1.5F * (((int) this.rating - 1) / 10 + 1));
     }
 

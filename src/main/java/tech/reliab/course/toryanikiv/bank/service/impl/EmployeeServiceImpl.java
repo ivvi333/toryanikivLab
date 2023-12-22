@@ -1,6 +1,8 @@
 package tech.reliab.course.toryanikiv.bank.service.impl;
 
 import lombok.NonNull;
+import tech.reliab.course.toryanikiv.bank.dal.impl.BankDao;
+import tech.reliab.course.toryanikiv.bank.dal.impl.BankOfficeDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.EmployeeDao;
 import tech.reliab.course.toryanikiv.bank.entity.Employee;
 import tech.reliab.course.toryanikiv.bank.service.EmployeeService;
@@ -9,9 +11,13 @@ import java.math.BigDecimal;
 
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeDao employeeDao;
+    private final BankDao bankDao;
+    private final BankOfficeDao bankOfficeDao;
 
-    public EmployeeServiceImpl(EmployeeDao employeeDao) {
+    public EmployeeServiceImpl(EmployeeDao employeeDao, BankDao bankDao, BankOfficeDao bankOfficeDao) {
         this.employeeDao = employeeDao;
+        this.bankDao = bankDao;
+        this.bankOfficeDao = bankOfficeDao;
     }
 
     @Override
@@ -31,6 +37,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         employeeDao.update(employee);
+        bankOfficeDao.update(employee.getBankOffice());
+        bankDao.update(employee.getBank());
 
         return true;
     }
@@ -44,6 +52,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setWorkingRemotely(true);
 
         employeeDao.update(employee);
+        bankOfficeDao.update(employee.getBankOffice());
+        bankDao.update(employee.getBank());
 
         return true;
     }
@@ -57,6 +67,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setWorkingRemotely(false);
 
         employeeDao.update(employee);
+        bankOfficeDao.update(employee.getBankOffice());
+        bankDao.update(employee.getBank());
 
         return true;
     }
