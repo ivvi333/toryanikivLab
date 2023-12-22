@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.UUID;
 
 @Getter
@@ -18,7 +19,8 @@ public class BankOffice {
     private Bank bank;
     private boolean isOpen;
     private boolean isAtmPlaceable;
-    private int atmCount;
+    private ArrayList<BankAtm> bankAtms;
+    private ArrayList<Employee> employees;
     private boolean isCreditAvailable;
     private boolean isWithdrawAvailable;
     private boolean isDepositAvailable;
@@ -32,7 +34,8 @@ public class BankOffice {
         this.bank = null;
         this.isOpen = false;
         this.isAtmPlaceable = false;
-        this.atmCount = 0;
+        this.bankAtms = new ArrayList<>();
+        this.employees = new ArrayList<>();
         this.isCreditAvailable = false;
         this.isWithdrawAvailable = false;
         this.isDepositAvailable = false;
@@ -42,10 +45,11 @@ public class BankOffice {
 
     @Override
     public String toString() {
-        return String.format("BankOffice(uuid=%s, name=%s, address=%s, bank=%s, isOpen=%b, isAtmPlaceable=%b, atmCount=%d, " +
-                        "isCreditAvailable=%b, isWithdrawAvailable=%b, isDepositAvailable=%b, totalMoney=%s, leaseCost=%s)",
-                uuid.toString(), name, address, bank == null ? "" : bank.toString(), isOpen, isAtmPlaceable, atmCount,
-                isCreditAvailable, isWithdrawAvailable, isDepositAvailable, totalMoney.toString(), leaseCost.toString()
+        return String.format("BankOffice(uuid=%s, name=%s, address=%s, bank=%s, isOpen=%b, isAtmPlaceable=%b, atmCount=%d," +
+                        "employeeCount=%d, isCreditAvailable=%b, isWithdrawAvailable=%b, isDepositAvailable=%b, totalMoney=%s, leaseCost=%s)",
+                uuid.toString(), name, address, bank == null ? "" : bank.toString(), isOpen, isAtmPlaceable, bankAtms.size(),
+                employees.size(), isCreditAvailable, isWithdrawAvailable, isDepositAvailable, totalMoney.toString(), leaseCost.toString()
         );
     }
 }
+

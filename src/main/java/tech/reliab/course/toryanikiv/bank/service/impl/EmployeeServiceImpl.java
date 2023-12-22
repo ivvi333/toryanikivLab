@@ -1,12 +1,19 @@
 package tech.reliab.course.toryanikiv.bank.service.impl;
 
 import lombok.NonNull;
+import tech.reliab.course.toryanikiv.bank.dal.impl.EmployeeDao;
 import tech.reliab.course.toryanikiv.bank.entity.Employee;
 import tech.reliab.course.toryanikiv.bank.service.EmployeeService;
 
 import java.math.BigDecimal;
 
 public class EmployeeServiceImpl implements EmployeeService {
+    private final EmployeeDao employeeDao;
+
+    public EmployeeServiceImpl(EmployeeDao employeeDao) {
+        this.employeeDao = employeeDao;
+    }
+
     @Override
     public boolean changeOccupation(@NonNull Employee employee, Employee.@NonNull EmployeeOccupation employeeOccupation) {
         if (employee.getOccupation() == employeeOccupation) {
@@ -23,6 +30,8 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.setCanIssueCredit(true);
         }
 
+        employeeDao.update(employee);
+
         return true;
     }
 
@@ -34,6 +43,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employee.setWorkingRemotely(true);
 
+        employeeDao.update(employee);
+
         return true;
     }
 
@@ -44,6 +55,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         employee.setWorkingRemotely(false);
+
+        employeeDao.update(employee);
 
         return true;
     }
