@@ -36,10 +36,12 @@ public class CreditAccount extends Account {
 
     @Override
     public String toString() {
-        return String.format("CreditAccount(uuid=%s, user=%s, bank=%s, creditOpeningDate=%s, creditClosingDate=%s, " +
-                        "creditDurationInMonths=%d, creditAmount=%s, monthlyPayment=%s, interestRate=%f, creditAssistant=%s, paymentAccount=%s)",
-                uuid.toString(), user.toString(), bank.toString(), creditOpeningDate.toString(), creditClosingDate.toString(),
-                creditDurationInMonths, creditAmount.toString(), monthlyPayment.toString(), interestRate, creditAssistant.toString(), paymentAccount.toString()
+        return String.format("CreditAccount(uuid=%s, userUUID=%s, bankUUID=%s, creditOpeningDate=%s, creditClosingDate=%s, " +
+                        "creditDurationInMonths=%d, creditAmount=%s, monthlyPayment=%s, interestRate=%f, " +
+                        "creditAssistantUUID=%s, paymentAccountUUID=%s)",
+                uuid.toString(), user.getUuid().toString(), bank.getUuid().toString(), creditOpeningDate.toString(), creditClosingDate.toString(),
+                creditDurationInMonths, creditAmount.toString(), monthlyPayment.toString(), interestRate,
+                creditAssistant.getUuid().toString(), paymentAccount.getUuid().toString()
         );
     }
 }

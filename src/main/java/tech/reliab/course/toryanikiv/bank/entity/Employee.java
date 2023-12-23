@@ -45,10 +45,12 @@ public class Employee {
 
     @Override
     public String toString() {
-        return String.format("Employee(uuid=%s, fullName=%s, dateOfBirth=%s, occupation=%s, bank=%s, " +
-                        "isWorkingRemotely=%b, bankOffice=%s, canIssueCredit=%b, salary=%s)",
-                uuid.toString(), fullName, dateOfBirth.toString(), occupation == null ? "" : occupation.toString(), bank == null ? "" : bank.toString(),
-                isWorkingRemotely, bankOffice == null ? "" : bankOffice.toString(), canIssueCredit, salary.toString()
+        return String.format("Employee(uuid=%s, fullName=%s, dateOfBirth=%s, occupation=%s, " +
+                        "bankUUID=%s, isWorkingRemotely=%b, bankOfficeUUID=%s, " +
+                        "canIssueCredit=%b, salary=%s)",
+                uuid.toString(), fullName, dateOfBirth.toString(), occupation == null ? "" : occupation.toString(),
+                bank == null ? "" : bank.getUuid().toString(), isWorkingRemotely, bankOffice == null ? "" : bankOffice.getUuid().toString(),
+                canIssueCredit, salary.toString()
         );
     }
 }

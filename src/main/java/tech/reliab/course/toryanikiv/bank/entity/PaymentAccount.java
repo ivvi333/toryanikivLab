@@ -20,8 +20,8 @@ public class PaymentAccount extends Account {
 
     @Override
     public String toString() {
-        return String.format("PaymentAccount(uuid=%s, user=%s, bank=%s, balance=%s)",
-                uuid.toString(), user.toString(), bank.toString(), balance.toString()
+        return String.format("PaymentAccount(uuid=%s, userUUID=%s, bankUUID=%s, balance=%s)",
+                uuid.toString(), user.getUuid().toString(), bank.getUuid().toString(), balance.toString()
         );
     }
 
