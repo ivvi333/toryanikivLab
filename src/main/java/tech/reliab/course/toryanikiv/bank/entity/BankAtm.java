@@ -46,10 +46,12 @@ public class BankAtm {
 
     @Override
     public String toString() {
-        return String.format("BankAtm(uuid=%s, name=%s, address=%s, status=%s, bank=%s, bankOffice=%s, " +
-                        "operator=%s, isWithdrawAvailable=%b, isDepositAvailable=%b, totalMoney=%s, maintenanceCost=%s)",
-                uuid.toString(), name, address, status.toString(), bank == null ? "" : bank.toString(), bankOffice == null ? "" : bankOffice.toString(),
-                operator == null ? "" : operator.toString(), isWithdrawAvailable, isDepositAvailable, totalMoney.toString(), maintenanceCost.toString()
+        return String.format("BankAtm(uuid=%s, name=%s, address=%s, status=%s, " +
+                        "bankUUID=%s, bankOfficeUUID=%s, operatorUUID=%s, " +
+                        "isWithdrawAvailable=%b, isDepositAvailable=%b, totalMoney=%s, maintenanceCost=%s)",
+                uuid.toString(), name, address, status.toString(),
+                bank == null ? "" : bank.getUuid().toString(), bankOffice == null ? "" : bankOffice.getUuid().toString(), operator == null ? "" : operator.getUuid().toString(),
+                isWithdrawAvailable, isDepositAvailable, totalMoney.toString(), maintenanceCost.toString()
         );
     }
 }

@@ -45,9 +45,9 @@ public class BankOffice {
 
     @Override
     public String toString() {
-        return String.format("BankOffice(uuid=%s, name=%s, address=%s, bank=%s, isOpen=%b, isAtmPlaceable=%b, atmCount=%d," +
+        return String.format("BankOffice(uuid=%s, name=%s, address=%s, bankUUID=%s, isOpen=%b, isAtmPlaceable=%b, atmCount=%d," +
                         "employeeCount=%d, isCreditAvailable=%b, isWithdrawAvailable=%b, isDepositAvailable=%b, totalMoney=%s, leaseCost=%s)",
-                uuid.toString(), name, address, bank == null ? "" : bank.toString(), isOpen, isAtmPlaceable, bankAtms.size(),
+                uuid.toString(), name, address, bank == null ? "" : bank.getUuid().toString(), isOpen, isAtmPlaceable, bankAtms.size(),
                 employees.size(), isCreditAvailable, isWithdrawAvailable, isDepositAvailable, totalMoney.toString(), leaseCost.toString()
         );
     }

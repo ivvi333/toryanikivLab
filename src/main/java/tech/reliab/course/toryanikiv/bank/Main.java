@@ -7,6 +7,7 @@ import tech.reliab.course.toryanikiv.bank.service.impl.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Scanner;
 import java.util.UUID;
 
 public class Main {
@@ -79,10 +80,245 @@ public class Main {
             }
         }
 
-        bankDao.getAll().forEach(System.out::println);
-        bankAtmDao.getAll().forEach(System.out::println);
-        bankOfficeDao.getAll().forEach(System.out::println);
-        employeeDao.getAll().forEach(System.out::println);
-        userDao.getAll().forEach(System.out::println);
+        Scanner scanner = new Scanner(System.in);
+
+        scannerLoop: while (true) {
+            System.out.println("\nChoose an action:");
+            System.out.println("1 - print bank data");
+            System.out.println("2 - print bank office data");
+            System.out.println("3 - print bank ATM data");
+            System.out.println("4 - print employee data");
+            System.out.println("5 - print user data");
+            System.out.println("6 - print payment account data");
+            System.out.println("7 - print credit account data");
+            System.out.println("0 - quit");
+
+            int action = scanner.nextInt();
+
+            switch (action) {
+                case 1:
+                    do {
+                        System.out.println("\nChoose type of action:");
+                        System.out.println("1 - print all banks");
+                        System.out.println("2 - print bank by UUID");
+                        System.out.println("0 - quit");
+                        action = scanner.nextInt();
+                        scanner.nextLine();
+                    } while (action < 0 || action > 2);
+
+                    if (action == 1) {
+                        bankDao.getAll().forEach(System.out::println);
+                    }
+                    else if (action == 2) {
+                        System.out.println("\nEnter the UUID:");
+                        UUID uuid = UUID.fromString(scanner.nextLine());
+                        if (bankDao.getByUUID(uuid).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            System.out.println(bankDao.getByUUID(uuid).get());
+                        }
+                    }
+                    else {
+                        break scannerLoop;
+                    }
+                    break;
+                case 2:
+                    do {
+                        System.out.println("\nChoose type of action:");
+                        System.out.println("1 - print all bank offices");
+                        System.out.println("2 - print bank office by UUID");
+                        System.out.println("0 - quit");
+                        action = scanner.nextInt();
+                        scanner.nextLine();
+                    } while (action < 0 || action > 2);
+
+                    if (action == 1) {
+                        bankOfficeDao.getAll().forEach(System.out::println);
+                    }
+                    else if (action == 2) {
+                        System.out.println("\nEnter the UUID:");
+                        UUID uuid = UUID.fromString(scanner.nextLine());
+                        if (bankOfficeDao.getByUUID(uuid).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            System.out.println(bankOfficeDao.getByUUID(uuid).get());
+                        }
+                    }
+                    else {
+                        break scannerLoop;
+                    }
+                    break;
+                case 3:
+                    do {
+                        System.out.println("\nChoose type of action:");
+                        System.out.println("1 - print all bank ATMs");
+                        System.out.println("2 - print bank ATM by UUID");
+                        System.out.println("0 - quit");
+                        action = scanner.nextInt();
+                        scanner.nextLine();
+                    } while (action < 0 || action > 2);
+
+                    if (action == 1) {
+                        bankAtmDao.getAll().forEach(System.out::println);
+                    }
+                    else if (action == 2) {
+                        System.out.println("\nEnter the UUID:");
+                        UUID uuid = UUID.fromString(scanner.nextLine());
+                        if (bankAtmDao.getByUUID(uuid).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            System.out.println(bankAtmDao.getByUUID(uuid).get());
+                        }
+                    }
+                    else {
+                        break scannerLoop;
+                    }
+                    break;
+                case 4:
+                    do {
+                        System.out.println("\nChoose type of action:");
+                        System.out.println("1 - print all employees");
+                        System.out.println("2 - print employee by UUID");
+                        System.out.println("0 - quit");
+                        action = scanner.nextInt();
+                        scanner.nextLine();
+                    } while (action < 0 || action > 2);
+
+                    if (action == 1) {
+                        employeeDao.getAll().forEach(System.out::println);
+                    }
+                    else if (action == 2) {
+                        System.out.println("\nEnter the UUID:");
+                        UUID uuid = UUID.fromString(scanner.nextLine());
+                        if (employeeDao.getByUUID(uuid).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            System.out.println(employeeDao.getByUUID(uuid).get());
+                        }
+                    }
+                    else {
+                        break scannerLoop;
+                    }
+                    break;
+                case 5:
+                    do {
+                        System.out.println("\nChoose type of action:");
+                        System.out.println("1 - print all users");
+                        System.out.println("2 - print user by UUID");
+                        System.out.println("0 - quit");
+                        action = scanner.nextInt();
+                        scanner.nextLine();
+                    } while (action < 0 || action > 2);
+
+                    if (action == 1) {
+                        userDao.getAll().forEach(System.out::println);
+                    }
+                    else if (action == 2) {
+                        System.out.println("\nEnter the UUID:");
+                        UUID uuid = UUID.fromString(scanner.nextLine());
+                        if (userDao.getByUUID(uuid).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            System.out.println(userDao.getByUUID(uuid).get());
+                        }
+                    }
+                    else {
+                        break scannerLoop;
+                    }
+                    break;
+                case 6:
+                    do {
+                        System.out.println("\nChoose type of action:");
+                        System.out.println("1 - print all payment accounts");
+                        System.out.println("2 - print payment account by UUID");
+                        System.out.println("3 - print all payment accounts by user UUID");
+                        System.out.println("0 - quit");
+                        action = scanner.nextInt();
+                        scanner.nextLine();
+                    } while (action < 0 || action > 3);
+
+                    if (action == 1) {
+                        paymentAccountDao.getAll().forEach(System.out::println);
+                    }
+                    else if (action == 2) {
+                        System.out.println("\nEnter the UUID:");
+                        UUID uuid = UUID.fromString(scanner.nextLine());
+                        if (paymentAccountDao.getByUUID(uuid).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            System.out.println(paymentAccountDao.getByUUID(uuid).get());
+                        }
+                    }
+                    else if (action == 3) {
+                        System.out.println("\nEnter the user UUID:");
+                        UUID userUUID = UUID.fromString(scanner.nextLine());
+                        if (userDao.getByUUID(userUUID).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            paymentAccountDao
+                                    .getAll()
+                                    .filter(paymentAccount -> userUUID.equals(paymentAccount.getUser().getUuid()))
+                                    .forEach(System.out::println);
+                        }
+                    }
+                    else {
+                        break scannerLoop;
+                    }
+                    break;
+                case 7:
+                    do {
+                        System.out.println("\nChoose type of action:");
+                        System.out.println("1 - print all credit accounts");
+                        System.out.println("2 - print credit account by UUID");
+                        System.out.println("3 - print all credit accounts by user UUID");
+                        System.out.println("0 - quit");
+                        action = scanner.nextInt();
+                        scanner.nextLine();
+                    } while (action < 0 || action > 3);
+
+                    if (action == 1) {
+                        creditAccountDao.getAll().forEach(System.out::println);
+                    }
+                    else if (action == 2) {
+                        System.out.println("\nEnter the UUID:");
+                        UUID uuid = UUID.fromString(scanner.nextLine());
+                        if (creditAccountDao.getByUUID(uuid).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            System.out.println(creditAccountDao.getByUUID(uuid).get());
+                        }
+                    }
+                    else if (action == 3) {
+                        System.out.println("\nEnter the user UUID:");
+                        UUID userUUID = UUID.fromString(scanner.nextLine());
+                        if (userDao.getByUUID(userUUID).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            creditAccountDao
+                                    .getAll()
+                                    .filter(creditAccount -> userUUID.equals(creditAccount.getUser().getUuid()))
+                                    .forEach(System.out::println);
+                        }
+                    }
+                    else {
+                        break scannerLoop;
+                    }
+                    break;
+                case 0:
+                    break scannerLoop;
+                default:
+                    System.out.println("Unknown action");
+                    break;
+            }
+        }
     }
 }
