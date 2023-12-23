@@ -13,5 +13,6 @@ public interface BankService {
     void printBankAtms(@NonNull Bank bank);
     void printBankOffices(@NonNull Bank bank);
     void printBankEmployees(@NonNull Bank bank);
-    void printBankClients(@NonNull Bank bank);
+    void printBankPaymentAccounts(@NonNull Bank bank);
+    void printBankCreditAccounts(@NonNull Bank bank);
 }

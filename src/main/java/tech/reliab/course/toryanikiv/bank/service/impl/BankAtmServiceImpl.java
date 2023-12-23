@@ -32,7 +32,7 @@ public class BankAtmServiceImpl implements BankAtmService {
 
         bankAtmDao.update(bankAtm);
         bankOfficeDao.update(bankAtm.getBankOffice());
-        bankDao.update(bankAtm.getBank());
+        bankDao.update(bankAtm.getBankOffice().getBank());
 
         return true;
     }
@@ -56,7 +56,7 @@ public class BankAtmServiceImpl implements BankAtmService {
 
         bankAtmDao.update(bankAtm);
         bankOfficeDao.update(bankAtm.getBankOffice());
-        bankDao.update(bankAtm.getBank());
+        bankDao.update(bankAtm.getBankOffice().getBank());
 
         return true;
     }

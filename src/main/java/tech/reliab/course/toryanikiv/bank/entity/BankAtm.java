@@ -1,5 +1,6 @@
 package tech.reliab.course.toryanikiv.bank.entity;
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -11,6 +12,10 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "uuid",
+        scope = BankAtm.class)
 public class BankAtm {
     public enum BankAtmStatus {
         FUNCTIONING,
@@ -22,7 +27,6 @@ public class BankAtm {
     private String name;
     private String address;
     private BankAtmStatus status;
-    private Bank bank;
     private BankOffice bankOffice;
     private Employee operator;
     private boolean isWithdrawAvailable;
@@ -30,12 +34,12 @@ public class BankAtm {
     private BigDecimal totalMoney;
     private BigDecimal maintenanceCost;
 
-    public BankAtm(@NonNull String name, @NonNull BigDecimal maintenanceCost) {
+    @JsonCreator
+    public BankAtm(@NonNull @JsonProperty("name") String name, @NonNull @JsonProperty("maintenanceCost") BigDecimal maintenanceCost) {
         this.uuid = UUID.randomUUID();
         this.name = name;
         this.address = "";
         this.status = BankAtmStatus.OUT_OF_SERVICE;
-        this.bank = null;
         this.bankOffice = null;
         this.operator = null;
         this.isWithdrawAvailable = false;
@@ -50,7 +54,7 @@ public class BankAtm {
                         "bankUUID=%s, bankOfficeUUID=%s, operatorUUID=%s, " +
                         "isWithdrawAvailable=%b, isDepositAvailable=%b, totalMoney=%s, maintenanceCost=%s)",
                 uuid.toString(), name, address, status.toString(),
-                bank == null ? "" : bank.getUuid().toString(), bankOffice == null ? "" : bankOffice.getUuid().toString(), operator == null ? "" : operator.getUuid().toString(),
+                bankOffice.getBank().getUuid().toString(), bankOffice.getUuid().toString(), operator == null ? "" : operator.getUuid().toString(),
                 isWithdrawAvailable, isDepositAvailable, totalMoney.toString(), maintenanceCost.toString()
         );
     }

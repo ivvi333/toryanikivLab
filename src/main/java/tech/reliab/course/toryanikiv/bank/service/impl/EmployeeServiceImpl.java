@@ -38,7 +38,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employeeDao.update(employee);
         bankOfficeDao.update(employee.getBankOffice());
-        bankDao.update(employee.getBank());
+        bankDao.update(employee.getBankOffice().getBank());
 
         return true;
     }
@@ -53,7 +53,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employeeDao.update(employee);
         bankOfficeDao.update(employee.getBankOffice());
-        bankDao.update(employee.getBank());
+        bankDao.update(employee.getBankOffice().getBank());
 
         return true;
     }
@@ -68,7 +68,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employeeDao.update(employee);
         bankOfficeDao.update(employee.getBankOffice());
-        bankDao.update(employee.getBank());
+        bankDao.update(employee.getBankOffice().getBank());
 
         return true;
     }

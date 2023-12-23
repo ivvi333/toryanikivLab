@@ -27,7 +27,7 @@ public class CreditAccountServiceImpl implements CreditAccountService {
 
     @Override
     public UUID openCreditAccount(@NonNull User user, @NonNull Bank bank, @NonNull Employee creditAssistant, @NonNull PaymentAccount paymentAccount,
-                                  @NonNull LocalDate creditOpeningDate, @NonNull int creditDurationInMonths, @NonNull BigDecimal creditAmount)
+                                  @NonNull LocalDate creditOpeningDate, int creditDurationInMonths, @NonNull BigDecimal creditAmount)
     {
         if (!user.getPaymentAccounts().containsValue(paymentAccount)
                 || bank.getTotalMoney().compareTo(creditAmount) < 0
@@ -63,7 +63,7 @@ public class CreditAccountServiceImpl implements CreditAccountService {
         user.setCreditScore(user.getCreditScore() + 10f);
 
         userDao.update(user);
-        bankDao.getAll().filter(bank -> bank.getClients().contains(user)).forEach(bankDao::update);
+        bankDao.update(creditAccount.getBank());
 
         return true;
     }

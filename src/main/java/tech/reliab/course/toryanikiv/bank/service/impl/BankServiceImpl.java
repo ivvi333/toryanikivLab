@@ -77,7 +77,12 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public void printBankClients(@NonNull Bank bank) {
-        bank.getClients().forEach(System.out::println);
+    public void printBankPaymentAccounts(@NonNull Bank bank) {
+        bank.getPaymentAccounts().forEach(System.out::println);
+    }
+
+    @Override
+    public void printBankCreditAccounts(@NonNull Bank bank) {
+        bank.getCreditAccounts().forEach(System.out::println);
     }
 }

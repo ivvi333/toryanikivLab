@@ -1,17 +1,24 @@
 package tech.reliab.course.toryanikiv.bank;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import tech.reliab.course.toryanikiv.bank.dal.impl.*;
+import tech.reliab.course.toryanikiv.bank.deserializer.*;
 import tech.reliab.course.toryanikiv.bank.entity.*;
 import tech.reliab.course.toryanikiv.bank.service.*;
 import tech.reliab.course.toryanikiv.bank.service.impl.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Scanner;
 import java.util.UUID;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws JsonProcessingException {
         BankDao bankDao = new BankDao();
         BankAtmDao bankAtmDao = new BankAtmDao();
         BankOfficeDao bankOfficeDao = new BankOfficeDao();
@@ -25,300 +32,62 @@ public class Main {
         PaymentAccountService paymentAccountService = new PaymentAccountServiceImpl(paymentAccountDao, bankDao, userDao, bankOfficeDao, bankAtmDao);
         CreditAccountService creditAccountService = new CreditAccountServiceImpl(creditAccountDao, paymentAccountDao, bankDao, userDao);
 
-        final int bankCount = 5, officeCount = 3, personCount = 5, accountCount = 2;
+        Bank bank = new Bank("Test bank");
+        bankDao.save(bank);
 
-        for (int bankID = 0; bankID < bankCount; bankID++) {
-            Bank bank = new Bank(String.format("Test bank %d", bankID));
-            bankDao.save(bank);
+        BankOffice bankOffice = new BankOffice("Test office", "Test addr", BigDecimal.valueOf(1000));
+        bankOfficeDao.save(bankOffice);
+        bankService.addOffice(bank, bankOfficeDao, bankOffice, BigDecimal.valueOf(5000));
 
-            for (int officeID = bankID * officeCount; officeID < bankID * officeCount + officeCount; officeID++) {
-                BankOffice bankOffice = new BankOffice(String.format("Test bank office %d", officeID), String.format("Test st. %d", officeID), BigDecimal.valueOf(5000));
-                bankOfficeDao.save(bankOffice);
-                bankService.addOffice(bank, bankOfficeDao, bankOffice, BigDecimal.valueOf(2000));
+        UUID employeeUUID = UUID.randomUUID();
+        Employee employee = new Employee("Test name", LocalDate.now().minusYears(30));
+        employeeDao.save(employee);
+        bankOfficeService.addEmployee(bankOffice, employeeDao, employee, Employee.EmployeeOccupation.ASSISTANT);
 
-                Employee banker = new Employee(String.format("Banker %d", officeID),
-                        LocalDate.now().minusYears(30).plusDays(officeID));
-                employeeDao.save(banker);
-                bankOfficeService.addEmployee(bankOffice, employeeDao, banker, Employee.EmployeeOccupation.BANKER);
+        UUID employee2UUID = UUID.randomUUID();
+        Employee employee2 = new Employee("Test name2", LocalDate.now().minusYears(30));
+        employeeDao.save(employee2);
+        bankOfficeService.addEmployee(bankOffice, employeeDao, employee2, Employee.EmployeeOccupation.TELLER);
 
-                Employee teller = new Employee(String.format("Teller %d", officeID),
-                        LocalDate.now().minusYears(30).plusMonths(1).plusDays(officeID));
-                employeeDao.save(teller);
-                bankOfficeService.addEmployee(bankOffice, employeeDao, teller, Employee.EmployeeOccupation.TELLER);
+        UUID bankAtmUUID = UUID.randomUUID();
+        BankAtm bankAtm = new BankAtm("Test atm", BigDecimal.valueOf(100));
+        bankAtmDao.save(bankAtm);
+        bankOfficeService.addAtm(bankOffice, bankAtmDao, bankAtm, employee2, BigDecimal.valueOf(1000));
 
-                Employee analyst = new Employee(String.format("Analyst %d", officeID),
-                        LocalDate.now().minusYears(30).plusMonths(2).plusDays(officeID));
-                employeeDao.save(analyst);
-                bankOfficeService.addEmployee(bankOffice, employeeDao, analyst, Employee.EmployeeOccupation.ANALYST);
+        UUID userUUID = UUID.randomUUID();
+        User user = new User("Test user name", LocalDate.now().minusYears(25), "Tester");
+        userDao.save(user);
 
-                Employee assistant = new Employee(String.format("Assistant %d", officeID),
-                        LocalDate.now().minusYears(30).plusMonths(3).plusDays(officeID));
-                employeeDao.save(assistant);
-                bankOfficeService.addEmployee(bankOffice, employeeDao, assistant, Employee.EmployeeOccupation.ASSISTANT);
+        UUID paymentAccountUUID = paymentAccountService.openPaymentAccount(user, bank);
+        paymentAccountService.openPaymentAccount(user, bank);
+        UUID creditAccountUUID = creditAccountService.openCreditAccount(user, bank, employee, paymentAccountDao.getByUUID(paymentAccountUUID).get(),
+                LocalDate.now().minusDays(5), 1, BigDecimal.valueOf(1000));
 
-                Employee manager = new Employee(String.format("Manager %d", officeID),
-                        LocalDate.now().minusYears(30).plusMonths(4).plusDays(officeID));
-                employeeDao.save(manager);
-                bankOfficeService.addEmployee(bankOffice, employeeDao, manager, Employee.EmployeeOccupation.MANAGER);
+//        System.out.println(user);
 
-                BankAtm bankAtm = new BankAtm(String.format("Test bank ATM %d", officeID), BigDecimal.valueOf(1000));
-                bankAtmDao.save(bankAtm);
-                bankOfficeService.addAtm(bankOffice, bankAtmDao, bankAtm, teller, BigDecimal.valueOf(1000));
+        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+        SimpleModule simpleModule = new SimpleModule();
 
-                for (int personID = officeID * personCount; personID < officeID * personCount + personCount; personID++) {
-                    User user = new User(String.format("User %d", personID),
-                            LocalDate.now().minusYears(25).plusMonths(6).plusDays(personID), String.format("Job %d", personID));
-                    userDao.save(user);
+        simpleModule.addDeserializer(Bank.class, new BankDeserializer());
+        simpleModule.addDeserializer(BankOffice.class, new BankOfficeDeserializer());
+        simpleModule.addDeserializer(BankAtm.class, new BankAtmDeserializer());
+        simpleModule.addDeserializer(Employee.class, new EmployeeDeserializer());
+        simpleModule.addDeserializer(User.class, new UserDeserializer());
+        simpleModule.addDeserializer(PaymentAccount.class, new PaymentAccountDeserializer());
+        simpleModule.addDeserializer(CreditAccount.class, new CreditAccountDeserializer());
 
-                    for (int accountID = personID * accountCount; accountID < personID * accountCount + accountCount; accountID++) {
-                        UUID paymentAccountUUID = paymentAccountService.openPaymentAccount(user, bank);
-                        creditAccountService.openCreditAccount(user, bank, assistant,
-                                paymentAccountDao.getByUUID(paymentAccountUUID).get(),
-                                LocalDate.now(), 4, BigDecimal.valueOf(1000));
-                    }
-                }
-            }
-        }
+        mapper.registerModule(new JavaTimeModule());
+        mapper.registerModule(simpleModule);
 
-        Scanner scanner = new Scanner(System.in);
+        var json = mapper.writeValueAsString(paymentAccountDao.getByUUID(paymentAccountUUID).get());
+        System.out.println(json);
 
-        scannerLoop: while (true) {
-            System.out.println("\nChoose an action:");
-            System.out.println("1 - print bank data");
-            System.out.println("2 - print bank office data");
-            System.out.println("3 - print bank ATM data");
-            System.out.println("4 - print employee data");
-            System.out.println("5 - print user data");
-            System.out.println("6 - print payment account data");
-            System.out.println("7 - print credit account data");
-            System.out.println("0 - quit");
+        paymentAccountDao.delete(paymentAccountDao.getByUUID(paymentAccountUUID).get());
 
-            int action = scanner.nextInt();
+        PaymentAccount oldPaymentAccount = mapper.readValue(json, PaymentAccount.class);
 
-            switch (action) {
-                case 1:
-                    do {
-                        System.out.println("\nChoose type of action:");
-                        System.out.println("1 - print all banks");
-                        System.out.println("2 - print bank by UUID");
-                        System.out.println("0 - quit");
-                        action = scanner.nextInt();
-                        scanner.nextLine();
-                    } while (action < 0 || action > 2);
+        paymentAccountDao.save(oldPaymentAccount);
 
-                    if (action == 1) {
-                        bankDao.getAll().forEach(System.out::println);
-                    }
-                    else if (action == 2) {
-                        System.out.println("\nEnter the UUID:");
-                        UUID uuid = UUID.fromString(scanner.nextLine());
-                        if (bankDao.getByUUID(uuid).isEmpty()) {
-                            System.out.println("Not found!");
-                        }
-                        else {
-                            System.out.println(bankDao.getByUUID(uuid).get());
-                        }
-                    }
-                    else {
-                        break scannerLoop;
-                    }
-                    break;
-                case 2:
-                    do {
-                        System.out.println("\nChoose type of action:");
-                        System.out.println("1 - print all bank offices");
-                        System.out.println("2 - print bank office by UUID");
-                        System.out.println("0 - quit");
-                        action = scanner.nextInt();
-                        scanner.nextLine();
-                    } while (action < 0 || action > 2);
-
-                    if (action == 1) {
-                        bankOfficeDao.getAll().forEach(System.out::println);
-                    }
-                    else if (action == 2) {
-                        System.out.println("\nEnter the UUID:");
-                        UUID uuid = UUID.fromString(scanner.nextLine());
-                        if (bankOfficeDao.getByUUID(uuid).isEmpty()) {
-                            System.out.println("Not found!");
-                        }
-                        else {
-                            System.out.println(bankOfficeDao.getByUUID(uuid).get());
-                        }
-                    }
-                    else {
-                        break scannerLoop;
-                    }
-                    break;
-                case 3:
-                    do {
-                        System.out.println("\nChoose type of action:");
-                        System.out.println("1 - print all bank ATMs");
-                        System.out.println("2 - print bank ATM by UUID");
-                        System.out.println("0 - quit");
-                        action = scanner.nextInt();
-                        scanner.nextLine();
-                    } while (action < 0 || action > 2);
-
-                    if (action == 1) {
-                        bankAtmDao.getAll().forEach(System.out::println);
-                    }
-                    else if (action == 2) {
-                        System.out.println("\nEnter the UUID:");
-                        UUID uuid = UUID.fromString(scanner.nextLine());
-                        if (bankAtmDao.getByUUID(uuid).isEmpty()) {
-                            System.out.println("Not found!");
-                        }
-                        else {
-                            System.out.println(bankAtmDao.getByUUID(uuid).get());
-                        }
-                    }
-                    else {
-                        break scannerLoop;
-                    }
-                    break;
-                case 4:
-                    do {
-                        System.out.println("\nChoose type of action:");
-                        System.out.println("1 - print all employees");
-                        System.out.println("2 - print employee by UUID");
-                        System.out.println("0 - quit");
-                        action = scanner.nextInt();
-                        scanner.nextLine();
-                    } while (action < 0 || action > 2);
-
-                    if (action == 1) {
-                        employeeDao.getAll().forEach(System.out::println);
-                    }
-                    else if (action == 2) {
-                        System.out.println("\nEnter the UUID:");
-                        UUID uuid = UUID.fromString(scanner.nextLine());
-                        if (employeeDao.getByUUID(uuid).isEmpty()) {
-                            System.out.println("Not found!");
-                        }
-                        else {
-                            System.out.println(employeeDao.getByUUID(uuid).get());
-                        }
-                    }
-                    else {
-                        break scannerLoop;
-                    }
-                    break;
-                case 5:
-                    do {
-                        System.out.println("\nChoose type of action:");
-                        System.out.println("1 - print all users");
-                        System.out.println("2 - print user by UUID");
-                        System.out.println("0 - quit");
-                        action = scanner.nextInt();
-                        scanner.nextLine();
-                    } while (action < 0 || action > 2);
-
-                    if (action == 1) {
-                        userDao.getAll().forEach(System.out::println);
-                    }
-                    else if (action == 2) {
-                        System.out.println("\nEnter the UUID:");
-                        UUID uuid = UUID.fromString(scanner.nextLine());
-                        if (userDao.getByUUID(uuid).isEmpty()) {
-                            System.out.println("Not found!");
-                        }
-                        else {
-                            System.out.println(userDao.getByUUID(uuid).get());
-                        }
-                    }
-                    else {
-                        break scannerLoop;
-                    }
-                    break;
-                case 6:
-                    do {
-                        System.out.println("\nChoose type of action:");
-                        System.out.println("1 - print all payment accounts");
-                        System.out.println("2 - print payment account by UUID");
-                        System.out.println("3 - print all payment accounts by user UUID");
-                        System.out.println("0 - quit");
-                        action = scanner.nextInt();
-                        scanner.nextLine();
-                    } while (action < 0 || action > 3);
-
-                    if (action == 1) {
-                        paymentAccountDao.getAll().forEach(System.out::println);
-                    }
-                    else if (action == 2) {
-                        System.out.println("\nEnter the UUID:");
-                        UUID uuid = UUID.fromString(scanner.nextLine());
-                        if (paymentAccountDao.getByUUID(uuid).isEmpty()) {
-                            System.out.println("Not found!");
-                        }
-                        else {
-                            System.out.println(paymentAccountDao.getByUUID(uuid).get());
-                        }
-                    }
-                    else if (action == 3) {
-                        System.out.println("\nEnter the user UUID:");
-                        UUID userUUID = UUID.fromString(scanner.nextLine());
-                        if (userDao.getByUUID(userUUID).isEmpty()) {
-                            System.out.println("Not found!");
-                        }
-                        else {
-                            paymentAccountDao
-                                    .getAll()
-                                    .filter(paymentAccount -> userUUID.equals(paymentAccount.getUser().getUuid()))
-                                    .forEach(System.out::println);
-                        }
-                    }
-                    else {
-                        break scannerLoop;
-                    }
-                    break;
-                case 7:
-                    do {
-                        System.out.println("\nChoose type of action:");
-                        System.out.println("1 - print all credit accounts");
-                        System.out.println("2 - print credit account by UUID");
-                        System.out.println("3 - print all credit accounts by user UUID");
-                        System.out.println("0 - quit");
-                        action = scanner.nextInt();
-                        scanner.nextLine();
-                    } while (action < 0 || action > 3);
-
-                    if (action == 1) {
-                        creditAccountDao.getAll().forEach(System.out::println);
-                    }
-                    else if (action == 2) {
-                        System.out.println("\nEnter the UUID:");
-                        UUID uuid = UUID.fromString(scanner.nextLine());
-                        if (creditAccountDao.getByUUID(uuid).isEmpty()) {
-                            System.out.println("Not found!");
-                        }
-                        else {
-                            System.out.println(creditAccountDao.getByUUID(uuid).get());
-                        }
-                    }
-                    else if (action == 3) {
-                        System.out.println("\nEnter the user UUID:");
-                        UUID userUUID = UUID.fromString(scanner.nextLine());
-                        if (userDao.getByUUID(userUUID).isEmpty()) {
-                            System.out.println("Not found!");
-                        }
-                        else {
-                            creditAccountDao
-                                    .getAll()
-                                    .filter(creditAccount -> userUUID.equals(creditAccount.getUser().getUuid()))
-                                    .forEach(System.out::println);
-                        }
-                    }
-                    else {
-                        break scannerLoop;
-                    }
-                    break;
-                case 0:
-                    break scannerLoop;
-                default:
-                    System.out.println("Unknown action");
-                    break;
-            }
-        }
+        paymentAccountDao.getAll().forEach(System.out::println);
     }
 }

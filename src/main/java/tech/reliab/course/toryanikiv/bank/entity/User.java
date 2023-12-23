@@ -1,12 +1,15 @@
 package tech.reliab.course.toryanikiv.bank.entity;
 
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import tech.reliab.course.toryanikiv.bank.deserializer.CreditAccountHashMapDeserializer;
+import tech.reliab.course.toryanikiv.bank.deserializer.PaymentAccountHashMapDeserializer;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
@@ -14,6 +17,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Getter
 @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "uuid",
+        scope = User.class)
 public class User {
     @Setter(AccessLevel.NONE) private UUID uuid;
     private String fullName;
@@ -21,11 +28,15 @@ public class User {
     private String job;
     private float monthlyIncome;
     private HashSet<String> bankNames;
+    @JsonDeserialize(using = CreditAccountHashMapDeserializer.class)
     private HashMap<UUID, CreditAccount> creditAccounts;
+    @JsonDeserialize(using = PaymentAccountHashMapDeserializer.class)
     private HashMap<UUID, PaymentAccount> paymentAccounts;
     private float creditScore;
 
-    public User(@NonNull String fullName, @NonNull LocalDate dateOfBirth, @NonNull String job) {
+    @JsonCreator
+    public User(@NonNull @JsonProperty("fullName") String fullName, @NonNull @JsonProperty("dateOfBirth") LocalDate dateOfBirth,
+                @NonNull @JsonProperty("job") String job) {
         this.uuid = UUID.randomUUID();
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;
