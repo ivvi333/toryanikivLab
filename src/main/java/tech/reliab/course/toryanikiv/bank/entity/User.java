@@ -1,12 +1,12 @@
 package tech.reliab.course.toryanikiv.bank.entity;
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
@@ -14,6 +14,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Getter
 @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "uuid",
+        scope = User.class)
 public class User {
     @Setter(AccessLevel.NONE) private UUID uuid;
     private String fullName;
@@ -21,8 +25,8 @@ public class User {
     private String job;
     private float monthlyIncome;
     private HashSet<String> bankNames;
-    private HashMap<UUID, CreditAccount> creditAccounts;
-    private HashMap<UUID, PaymentAccount> paymentAccounts;
+    @JsonIdentityReference(alwaysAsId = true) private HashMap<UUID, CreditAccount> creditAccounts;
+    @JsonIdentityReference(alwaysAsId = true) private HashMap<UUID, PaymentAccount> paymentAccounts;
     private float creditScore;
 
     public User(@NonNull String fullName, @NonNull LocalDate dateOfBirth, @NonNull String job) {

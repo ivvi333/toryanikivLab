@@ -5,13 +5,14 @@ import tech.reliab.course.toryanikiv.bank.entity.*;
 import tech.reliab.course.toryanikiv.bank.service.*;
 import tech.reliab.course.toryanikiv.bank.service.impl.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Scanner;
 import java.util.UUID;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         BankDao bankDao = new BankDao();
         BankAtmDao bankAtmDao = new BankAtmDao();
         BankOfficeDao bankOfficeDao = new BankOfficeDao();
@@ -24,6 +25,7 @@ public class Main {
         BankOfficeService bankOfficeService = new BankOfficeServiceImpl(bankOfficeDao, bankDao);
         PaymentAccountService paymentAccountService = new PaymentAccountServiceImpl(paymentAccountDao, bankDao, userDao, bankOfficeDao, bankAtmDao);
         CreditAccountService creditAccountService = new CreditAccountServiceImpl(creditAccountDao, paymentAccountDao, bankDao, userDao);
+        UserService userService = new UserServiceImpl(userDao);
 
         final int bankCount = 5, officeCount = 3, personCount = 5, accountCount = 2;
 
@@ -83,14 +85,14 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         scannerLoop: while (true) {
-            System.out.println("\nChoose an action:");
-            System.out.println("1 - print bank data");
-            System.out.println("2 - print bank office data");
-            System.out.println("3 - print bank ATM data");
-            System.out.println("4 - print employee data");
-            System.out.println("5 - print user data");
-            System.out.println("6 - print payment account data");
-            System.out.println("7 - print credit account data");
+            System.out.println("\nChoose entities to work with:");
+            System.out.println("1 - banks");
+            System.out.println("2 - bank offices");
+            System.out.println("3 - bank ATMs");
+            System.out.println("4 - employees");
+            System.out.println("5 - users");
+            System.out.println("6 - payment accounts");
+            System.out.println("7 - credit accounts");
             System.out.println("0 - quit");
 
             int action = scanner.nextInt();
@@ -209,10 +211,11 @@ public class Main {
                         System.out.println("\nChoose type of action:");
                         System.out.println("1 - print all users");
                         System.out.println("2 - print user by UUID");
+                        System.out.println("3 - save user info and accounts to JSON by UUID");
                         System.out.println("0 - quit");
                         action = scanner.nextInt();
                         scanner.nextLine();
-                    } while (action < 0 || action > 2);
+                    } while (action < 0 || action > 3);
 
                     if (action == 1) {
                         userDao.getAll().forEach(System.out::println);
@@ -227,6 +230,19 @@ public class Main {
                             System.out.println(userDao.getByUUID(uuid).get());
                         }
                     }
+                    else if (action == 3) {
+                        System.out.println("\nEnter the UUID:");
+                        UUID uuid = UUID.fromString(scanner.nextLine());
+                        if (userDao.getByUUID(uuid).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            System.out.println("\nEnter the full path to the target directory:");
+                            String targetDirPath = scanner.nextLine();
+                            userService.saveUserInfo(userDao.getByUUID(uuid).get(), targetDirPath);
+                            System.out.println("\nUser info and accounts are successfully saved!");
+                        }
+                    }
                     else {
                         break scannerLoop;
                     }
@@ -237,10 +253,11 @@ public class Main {
                         System.out.println("1 - print all payment accounts");
                         System.out.println("2 - print payment account by UUID");
                         System.out.println("3 - print all payment accounts by user UUID");
+                        System.out.println("4 - change payment account bank by account UUID");
                         System.out.println("0 - quit");
                         action = scanner.nextInt();
                         scanner.nextLine();
-                    } while (action < 0 || action > 3);
+                    } while (action < 0 || action > 4);
 
                     if (action == 1) {
                         paymentAccountDao.getAll().forEach(System.out::println);
@@ -268,6 +285,60 @@ public class Main {
                                     .forEach(System.out::println);
                         }
                     }
+                    else if (action == 4) {
+                        System.out.println("\nEnter the account UUID:");
+                        UUID accountUUID = UUID.fromString(scanner.nextLine());
+                        if (paymentAccountDao.getByUUID(accountUUID).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            String ynAction;
+                            do {
+                                System.out.println("Have you saved user's info and accounts to JSON? (Y/N):");
+                                ynAction = scanner.nextLine();
+                            } while (!ynAction.equalsIgnoreCase("Y") && !ynAction.equalsIgnoreCase("N"));
+
+                            if (ynAction.equalsIgnoreCase("Y")) {
+                                System.out.println("\nEnter the full path to the PaymentAccounts directory:");
+                                String paymentAccountsDirPath = scanner.nextLine();
+
+                                do {
+                                    System.out.println("Have you changed the account's bank directly in JSON? (Y/N):");
+                                    ynAction = scanner.nextLine();
+                                } while (!ynAction.equalsIgnoreCase("Y") && !ynAction.equalsIgnoreCase("N"));
+
+                                if (ynAction.equalsIgnoreCase("Y")) {
+                                    userService.changePaymentAccountBank(paymentAccountsDirPath,
+                                            paymentAccountDao, paymentAccountDao.getByUUID(accountUUID).get(), bankDao);
+                                    System.out.println("Payment account bank is successfully changed!");
+                                }
+                                else {
+                                    System.out.println("\nEnter the bank UUID:");
+                                    UUID bankUUID = UUID.fromString(scanner.nextLine());
+                                    if (bankDao.getByUUID(bankUUID).isEmpty()) {
+                                        System.out.println("Not found!");
+                                    }
+                                    else {
+                                        userService.changePaymentAccountBank(paymentAccountsDirPath,
+                                                paymentAccountDao, paymentAccountDao.getByUUID(accountUUID).get(), bankDao, bankDao.getByUUID(bankUUID).get());
+                                        System.out.println("Payment account bank is successfully changed!");
+                                    }
+                                }
+                            }
+                            else {
+                                System.out.println("\nEnter the bank UUID:");
+                                UUID bankUUID = UUID.fromString(scanner.nextLine());
+                                if (bankDao.getByUUID(bankUUID).isEmpty()) {
+                                    System.out.println("Not found!");
+                                }
+                                else {
+                                    userService.changePaymentAccountBank("",
+                                            paymentAccountDao, paymentAccountDao.getByUUID(accountUUID).get(), bankDao, bankDao.getByUUID(bankUUID).get());
+                                    System.out.println("Payment account bank is successfully changed!");
+                                }
+                            }
+                        }
+                    }
                     else {
                         break scannerLoop;
                     }
@@ -278,10 +349,11 @@ public class Main {
                         System.out.println("1 - print all credit accounts");
                         System.out.println("2 - print credit account by UUID");
                         System.out.println("3 - print all credit accounts by user UUID");
+                        System.out.println("4 - change credit account bank by account UUID");
                         System.out.println("0 - quit");
                         action = scanner.nextInt();
                         scanner.nextLine();
-                    } while (action < 0 || action > 3);
+                    } while (action < 0 || action > 4);
 
                     if (action == 1) {
                         creditAccountDao.getAll().forEach(System.out::println);
@@ -307,6 +379,60 @@ public class Main {
                                     .getAll()
                                     .filter(creditAccount -> userUUID.equals(creditAccount.getUser().getUuid()))
                                     .forEach(System.out::println);
+                        }
+                    }
+                    else if (action == 4) {
+                        System.out.println("\nEnter the account UUID:");
+                        UUID accountUUID = UUID.fromString(scanner.nextLine());
+                        if (creditAccountDao.getByUUID(accountUUID).isEmpty()) {
+                            System.out.println("Not found!");
+                        }
+                        else {
+                            String ynAction;
+                            do {
+                                System.out.println("Have you saved user's info and accounts to JSON? (Y/N):");
+                                ynAction = scanner.nextLine();
+                            } while (!ynAction.equalsIgnoreCase("Y") && !ynAction.equalsIgnoreCase("N"));
+
+                            if (ynAction.equalsIgnoreCase("Y")) {
+                                System.out.println("\nEnter the full path to the CreditAccounts directory:");
+                                String creditAccountsDirPath = scanner.nextLine();
+
+                                do {
+                                    System.out.println("Have you changed the account's bank directly in JSON? (Y/N):");
+                                    ynAction = scanner.nextLine();
+                                } while (!ynAction.equalsIgnoreCase("Y") && !ynAction.equalsIgnoreCase("N"));
+
+                                if (ynAction.equalsIgnoreCase("Y")) {
+                                    userService.changeCreditAccountBank(creditAccountsDirPath,
+                                            creditAccountDao, creditAccountDao.getByUUID(accountUUID).get(), bankDao);
+                                    System.out.println("Credit account bank is successfully changed!");
+                                }
+                                else {
+                                    System.out.println("\nEnter the bank UUID:");
+                                    UUID bankUUID = UUID.fromString(scanner.nextLine());
+                                    if (bankDao.getByUUID(bankUUID).isEmpty()) {
+                                        System.out.println("Not found!");
+                                    }
+                                    else {
+                                        userService.changeCreditAccountBank(creditAccountsDirPath,
+                                                creditAccountDao, creditAccountDao.getByUUID(accountUUID).get(), bankDao, bankDao.getByUUID(bankUUID).get());
+                                        System.out.println("Credit account bank is successfully changed!");
+                                    }
+                                }
+                            }
+                            else {
+                                System.out.println("\nEnter the bank UUID:");
+                                UUID bankUUID = UUID.fromString(scanner.nextLine());
+                                if (bankDao.getByUUID(bankUUID).isEmpty()) {
+                                    System.out.println("Not found!");
+                                }
+                                else {
+                                    userService.changeCreditAccountBank("",
+                                            creditAccountDao, creditAccountDao.getByUUID(accountUUID).get(), bankDao, bankDao.getByUUID(bankUUID).get());
+                                    System.out.println("Credit account bank is successfully changed!");
+                                }
+                            }
                         }
                     }
                     else {

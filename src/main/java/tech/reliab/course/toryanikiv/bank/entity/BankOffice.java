@@ -1,5 +1,6 @@
 package tech.reliab.course.toryanikiv.bank.entity;
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -12,6 +13,10 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "uuid",
+        scope = BankOffice.class)
 public class BankOffice {
     @Setter(AccessLevel.NONE) private UUID uuid;
     private String name;

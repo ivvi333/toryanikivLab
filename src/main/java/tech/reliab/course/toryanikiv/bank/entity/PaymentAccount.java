@@ -1,5 +1,6 @@
 package tech.reliab.course.toryanikiv.bank.entity;
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -10,6 +11,10 @@ import java.util.Objects;
 
 @Getter
 @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "uuid",
+        scope = PaymentAccount.class)
 public class PaymentAccount extends Account {
     private BigDecimal balance;
 

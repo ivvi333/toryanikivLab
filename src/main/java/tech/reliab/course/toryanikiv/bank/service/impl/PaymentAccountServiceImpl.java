@@ -31,7 +31,7 @@ public class PaymentAccountServiceImpl implements PaymentAccountService {
         user.getPaymentAccounts().put(paymentAccount.getUuid(), paymentAccount);
         user.getBankNames().add(bank.getName());
 
-        bank.getClients().add(user);
+        bank.getPaymentAccounts().add(paymentAccount);
 
         userDao.update(user);
         bankDao.update(bank);
@@ -52,8 +52,9 @@ public class PaymentAccountServiceImpl implements PaymentAccountService {
                 .anyMatch(o -> Objects.equals(o.getValue().getBank().getName(), paymentAccount.getBank().getName()));
         if (!isBankInUse) {
             user.getBankNames().remove(paymentAccount.getBank().getName());
-            bank.getClients().remove(user);
         }
+
+        bank.getPaymentAccounts().remove(paymentAccount);
 
         userDao.update(user);
         bankDao.update(bank);

@@ -1,5 +1,6 @@
 package tech.reliab.course.toryanikiv.bank.entity;
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -12,6 +13,10 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "uuid",
+        scope = Employee.class)
 public class Employee {
     public enum EmployeeOccupation {
         BANKER,
@@ -25,7 +30,6 @@ public class Employee {
     private String fullName;
     private LocalDate dateOfBirth;
     private EmployeeOccupation occupation;
-    private Bank bank;
     private boolean isWorkingRemotely;
     private BankOffice bankOffice;
     private boolean canIssueCredit;
@@ -36,7 +40,6 @@ public class Employee {
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;
         this.occupation = null;
-        this.bank = null;
         this.isWorkingRemotely = false;
         this.bankOffice = null;
         this.canIssueCredit = false;
@@ -49,7 +52,7 @@ public class Employee {
                         "bankUUID=%s, isWorkingRemotely=%b, bankOfficeUUID=%s, " +
                         "canIssueCredit=%b, salary=%s)",
                 uuid.toString(), fullName, dateOfBirth.toString(), occupation == null ? "" : occupation.toString(),
-                bank == null ? "" : bank.getUuid().toString(), isWorkingRemotely, bankOffice == null ? "" : bankOffice.getUuid().toString(),
+                bankOffice.getBank().getUuid().toString(), isWorkingRemotely, bankOffice.getUuid().toString(),
                 canIssueCredit, salary.toString()
         );
     }

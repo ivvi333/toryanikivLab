@@ -1,5 +1,6 @@
 package tech.reliab.course.toryanikiv.bank.entity;
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -10,6 +11,10 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "uuid",
+        scope = CreditAccount.class)
 public class CreditAccount extends Account {
     private LocalDate creditOpeningDate;
     private LocalDate creditClosingDate;
@@ -20,8 +25,12 @@ public class CreditAccount extends Account {
     private Employee creditAssistant;
     private PaymentAccount paymentAccount;
 
-    public CreditAccount(@NonNull User user, @NonNull Bank bank, @NonNull Employee creditAssistant, @NonNull PaymentAccount paymentAccount,
-                         @NonNull LocalDate creditOpeningDate, @NonNull int creditDurationInMonths, @NonNull BigDecimal creditAmount) {
+    @JsonCreator
+    public CreditAccount(@NonNull User user, @NonNull Bank bank,
+                         @NonNull Employee creditAssistant, @NonNull PaymentAccount paymentAccount,
+                         @NonNull LocalDate creditOpeningDate, @NonNull int creditDurationInMonths,
+                         @NonNull BigDecimal creditAmount)
+    {
         super(user, bank);
         this.creditAssistant = creditAssistant;
         this.paymentAccount = paymentAccount;

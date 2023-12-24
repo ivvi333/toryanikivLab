@@ -10,6 +10,7 @@ import tech.reliab.course.toryanikiv.bank.service.CreditAccountService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 
 public class CreditAccountServiceImpl implements CreditAccountService {
@@ -27,7 +28,7 @@ public class CreditAccountServiceImpl implements CreditAccountService {
 
     @Override
     public UUID openCreditAccount(@NonNull User user, @NonNull Bank bank, @NonNull Employee creditAssistant, @NonNull PaymentAccount paymentAccount,
-                                  @NonNull LocalDate creditOpeningDate, @NonNull int creditDurationInMonths, @NonNull BigDecimal creditAmount)
+                                  @NonNull LocalDate creditOpeningDate, int creditDurationInMonths, @NonNull BigDecimal creditAmount)
     {
         if (!user.getPaymentAccounts().containsValue(paymentAccount)
                 || bank.getTotalMoney().compareTo(creditAmount) < 0
@@ -42,6 +43,8 @@ public class CreditAccountServiceImpl implements CreditAccountService {
 
         user.getCreditAccounts().put(creditAccount.getUuid(), creditAccount);
         user.setCreditScore(user.getCreditScore() - 10f);
+
+        bank.getCreditAccounts().add(creditAccount);
 
         userDao.update(user);
         bankDao.update(bank);
@@ -62,8 +65,10 @@ public class CreditAccountServiceImpl implements CreditAccountService {
         user.getCreditAccounts().remove(creditAccount.getUuid());
         user.setCreditScore(user.getCreditScore() + 10f);
 
+        creditAccount.getBank().getCreditAccounts().remove(creditAccount);
+
         userDao.update(user);
-        bankDao.getAll().filter(bank -> bank.getClients().contains(user)).forEach(bankDao::update);
+        bankDao.update(creditAccount.getBank());
 
         return true;
     }

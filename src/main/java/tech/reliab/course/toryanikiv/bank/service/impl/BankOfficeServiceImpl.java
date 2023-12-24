@@ -34,7 +34,6 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         }
 
         bankAtm.setAddress(bankOffice.getAddress());
-        bankAtm.setBank(bankOffice.getBank());
         bankAtm.setBankOffice(bankOffice);
         bankAtm.setOperator(operator);
         bankAtm.setTotalMoney(initialTotalMoney);
@@ -46,8 +45,6 @@ public class BankOfficeServiceImpl implements BankOfficeService {
 
         bankOffice.getBankAtms().add(bankAtm);
 
-        bankOffice.getBank().setAtmCount(bankOffice.getBank().getAtmCount() + 1);
-
         bankOfficeDao.update(bankOffice);
         bankDao.update(bankOffice.getBank());
         bankAtmDao.update(bankAtm);
@@ -58,7 +55,6 @@ public class BankOfficeServiceImpl implements BankOfficeService {
     @Override
     public boolean deleteAtm(@NonNull BankOffice bankOffice, @NonNull BankAtmDao bankAtmDao, @NonNull BankAtm bankAtm) {
         bankAtm.setAddress("");
-        bankAtm.setBank(null);
         bankAtm.setBankOffice(null);
         bankAtm.setOperator(null);
         bankAtm.setTotalMoney(BigDecimal.ZERO);
@@ -69,7 +65,6 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         }
 
         bankOffice.getBankAtms().remove(bankAtm);
-        bankOffice.getBank().setAtmCount(bankOffice.getBank().getAtmCount() - 1);
 
         bankOfficeDao.update(bankOffice);
         bankDao.update(bankOffice.getBank());
@@ -84,7 +79,6 @@ public class BankOfficeServiceImpl implements BankOfficeService {
             return false;
         }
 
-        employee.setBank(bankOffice.getBank());
         employee.setBankOffice(bankOffice);
 
         EmployeeService employeeService = new EmployeeServiceImpl(employeeDao, bankDao, bankOfficeDao);
@@ -93,7 +87,6 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         }
 
         bankOffice.getEmployees().add(employee);
-        bankOffice.getBank().setEmployeeCount(bankOffice.getBank().getEmployeeCount() + 1);
 
         bankOfficeDao.update(bankOffice);
         bankDao.update(bankOffice.getBank());
@@ -108,7 +101,6 @@ public class BankOfficeServiceImpl implements BankOfficeService {
             return false;
         }
 
-        employee.setBank(null);
         employee.setBankOffice(null);
         employee.setWorkingRemotely(false);
         employee.setCanIssueCredit(false);
@@ -116,7 +108,6 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         employee.setSalary(BigDecimal.ZERO);
 
         bankOffice.getEmployees().remove(employee);
-        bankOffice.getBank().setEmployeeCount(bankOffice.getBank().getEmployeeCount() - 1);
 
         bankOfficeDao.update(bankOffice);
         bankDao.update(bankOffice.getBank());
