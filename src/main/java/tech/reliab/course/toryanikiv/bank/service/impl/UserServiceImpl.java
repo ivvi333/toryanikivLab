@@ -19,6 +19,8 @@ import tech.reliab.course.toryanikiv.bank.service.UserService;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class UserServiceImpl implements UserService {
@@ -110,6 +112,8 @@ public class UserServiceImpl implements UserService {
                                             @NonNull BankDao bankDao)
             throws IOException
     {
+        String paymentAccountBankUUID = paymentAccount.getBank().getUuid().toString();
+
         ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         SimpleModule simpleModule = new SimpleModule();
         simpleModule.addDeserializer(PaymentAccount.class, new PaymentAccountDeserializer(paymentAccountDao, bankDao));
@@ -119,15 +123,22 @@ public class UserServiceImpl implements UserService {
         PaymentAccount paymentAccountFromJSON = mapper.readValue(
                 new File(paymentAccountsDirPath, "PaymentAccount-" + paymentAccount.getUuid().toString() + ".json"),
                 PaymentAccount.class);
+        String paymentAccountFromJSONBankUUID = paymentAccountFromJSON.getBank().getUuid().toString();
 
-        if (paymentAccountFromJSON.getBank() != paymentAccount.getBank()) {
-            paymentAccount.getBank().getPaymentAccounts().remove(paymentAccount);
-            paymentAccountFromJSON.getBank().getPaymentAccounts().add(paymentAccountFromJSON);
+        if (!Objects.equals(paymentAccountBankUUID, paymentAccountFromJSONBankUUID)) {
+            Bank paymentAccountBank = bankDao.getByUUID(UUID.fromString(paymentAccountBankUUID)).get();
+            Bank paymentAccountFromJSONBank = bankDao.getByUUID(UUID.fromString(paymentAccountFromJSONBankUUID)).get();
+
+            paymentAccountBank.getPaymentAccounts().remove(paymentAccount);
+            bankDao.update(paymentAccountBank);
+
+            paymentAccountFromJSONBank.getPaymentAccounts().add(paymentAccountFromJSON);
+            bankDao.update(paymentAccountFromJSONBank);
+
             paymentAccountFromJSON.getUser().getBankNames().add(paymentAccountFromJSON.getBank().getName());
 
             paymentAccountDao.update(paymentAccountFromJSON);
             userDao.update(paymentAccountFromJSON.getUser());
-            bankDao.update(paymentAccountFromJSON.getBank());
         }
 
         return true;
@@ -140,13 +151,16 @@ public class UserServiceImpl implements UserService {
             throws IOException
     {
         paymentAccount.getBank().getPaymentAccounts().remove(paymentAccount);
+        bankDao.update(paymentAccount.getBank());
+
         paymentAccount.setBank(bank);
         bank.getPaymentAccounts().add(paymentAccount);
+        bankDao.update(bank);
+
         paymentAccount.getUser().getBankNames().add(bank.getName());
 
         paymentAccountDao.update(paymentAccount);
         userDao.update(paymentAccount.getUser());
-        bankDao.update(bank);
 
         if (!paymentAccountsDirPath.isBlank()) {
             ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -169,6 +183,8 @@ public class UserServiceImpl implements UserService {
                                            @NonNull BankDao bankDao)
             throws IOException
     {
+        String creditAccountBankUUID = creditAccount.getBank().getUuid().toString();
+
         ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         SimpleModule simpleModule = new SimpleModule();
         simpleModule.addDeserializer(CreditAccount.class, new CreditAccountDeserializer(creditAccountDao, bankDao));
@@ -178,15 +194,22 @@ public class UserServiceImpl implements UserService {
         CreditAccount creditAccountFromJSON = mapper.readValue(
                 new File(creditAccountsDirPath, "CreditAccount-" + creditAccount.getUuid().toString() + ".json"),
                 CreditAccount.class);
+        String creditAccountFromJSONBankUUID = creditAccountFromJSON.getBank().getUuid().toString();
 
-        if (creditAccountFromJSON.getBank() != creditAccountFromJSON.getBank()) {
-            creditAccount.getBank().getPaymentAccounts().remove(creditAccount);
-            creditAccountFromJSON.getBank().getCreditAccounts().add(creditAccountFromJSON);
+        if (!Objects.equals(creditAccountBankUUID, creditAccountFromJSONBankUUID)) {
+            Bank creditAccountBank = bankDao.getByUUID(UUID.fromString(creditAccountBankUUID)).get();
+            Bank creditAccountFromJSONBankBank = bankDao.getByUUID(UUID.fromString(creditAccountFromJSONBankUUID)).get();
+
+            creditAccountBank.getCreditAccounts().remove(creditAccount);
+            bankDao.update(creditAccountBank);
+
+            creditAccountFromJSONBankBank.getCreditAccounts().add(creditAccountFromJSON);
+            bankDao.update(creditAccountFromJSONBankBank);
+
             creditAccountFromJSON.getUser().getBankNames().add(creditAccountFromJSON.getBank().getName());
 
             creditAccountDao.update(creditAccountFromJSON);
             userDao.update(creditAccountFromJSON.getUser());
-            bankDao.update(creditAccountFromJSON.getBank());
         }
 
         return true;
@@ -199,13 +222,16 @@ public class UserServiceImpl implements UserService {
             throws IOException
     {
         creditAccount.getBank().getCreditAccounts().remove(creditAccount);
+        bankDao.update(creditAccount.getBank());
+
         creditAccount.setBank(bank);
         bank.getCreditAccounts().add(creditAccount);
+        bankDao.update(bank);
+
         creditAccount.getUser().getBankNames().add(bank.getName());
 
         creditAccountDao.update(creditAccount);
         userDao.update(creditAccount.getUser());
-        bankDao.update(bank);
 
         if (!creditAccountsDirPath.isBlank()) {
             ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
