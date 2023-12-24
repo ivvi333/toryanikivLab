@@ -150,6 +150,7 @@ public class UserServiceImpl implements UserService {
 
         if (!paymentAccountsDirPath.isBlank()) {
             ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+            mapper.registerModule(new JavaTimeModule());
             try {
                 mapper.writeValue(
                         new File(paymentAccountsDirPath, "PaymentAccount-" + paymentAccount.getUuid().toString() + ".json"),
@@ -208,6 +209,7 @@ public class UserServiceImpl implements UserService {
 
         if (!creditAccountsDirPath.isBlank()) {
             ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+            mapper.registerModule(new JavaTimeModule());
             try {
                 mapper.writeValue(
                         new File(creditAccountsDirPath, "CreditAccount-" + creditAccount.getUuid().toString() + ".json"),
