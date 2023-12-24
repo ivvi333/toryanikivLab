@@ -22,8 +22,8 @@ public class CreditAccount extends Account {
     private BigDecimal creditAmount;
     private BigDecimal monthlyPayment;
     private float interestRate;
-    private Employee creditAssistant;
-    private PaymentAccount paymentAccount;
+    @JsonIdentityReference(alwaysAsId = true) private Employee creditAssistant;
+    @JsonIdentityReference(alwaysAsId = true) private PaymentAccount paymentAccount;
 
     @JsonCreator
     public CreditAccount(@NonNull User user, @NonNull Bank bank,
