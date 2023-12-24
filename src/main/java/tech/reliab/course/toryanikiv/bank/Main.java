@@ -5,21 +5,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import tech.reliab.course.toryanikiv.bank.dal.impl.*;
 import tech.reliab.course.toryanikiv.bank.deserializer.*;
 import tech.reliab.course.toryanikiv.bank.entity.*;
 import tech.reliab.course.toryanikiv.bank.service.*;
 import tech.reliab.course.toryanikiv.bank.service.impl.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.UUID;
 
 public class Main {
-    public static void main(String[] args) throws JsonProcessingException {
+    public static void main(String[] args) {
         BankDao bankDao = new BankDao();
         BankAtmDao bankAtmDao = new BankAtmDao();
         BankOfficeDao bankOfficeDao = new BankOfficeDao();
@@ -32,9 +31,13 @@ public class Main {
         BankOfficeService bankOfficeService = new BankOfficeServiceImpl(bankOfficeDao, bankDao);
         PaymentAccountService paymentAccountService = new PaymentAccountServiceImpl(paymentAccountDao, bankDao, userDao, bankOfficeDao, bankAtmDao);
         CreditAccountService creditAccountService = new CreditAccountServiceImpl(creditAccountDao, paymentAccountDao, bankDao, userDao);
+        UserService userService = new UserServiceImpl(userDao);
 
         Bank bank = new Bank("Test bank");
         bankDao.save(bank);
+
+        Bank newBank = new Bank("New bank");
+        bankDao.save(newBank);
 
         BankOffice bankOffice = new BankOffice("Test office", "Test addr", BigDecimal.valueOf(1000));
         bankOfficeDao.save(bankOffice);
@@ -66,31 +69,19 @@ public class Main {
 
 //        System.out.println(user);
 
-        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        SimpleModule simpleModule = new SimpleModule();
+        try {
+            userService.saveUserInfo(user, "/home/ivvi/Desktop");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        simpleModule.addDeserializer(Bank.class, new BankDeserializer());
-        simpleModule.addDeserializer(BankOffice.class, new BankOfficeDeserializer());
-        simpleModule.addDeserializer(BankAtm.class, new BankAtmDeserializer());
-        simpleModule.addDeserializer(Employee.class, new EmployeeDeserializer());
-        simpleModule.addDeserializer(User.class, new UserDeserializer());
-        simpleModule.addDeserializer(PaymentAccount.class, new PaymentAccountDeserializer());
-        simpleModule.addDeserializer(CreditAccount.class, new CreditAccountDeserializer());
-        simpleModule.addDeserializer(HashMap.class, new CreditAccountHashMapDeserializer());
-        simpleModule.addDeserializer(HashMap.class, new PaymentAccountHashMapDeserializer());
+        try {
+            userService.changePaymentAccountBank("/home/ivvi/Desktop/User/PaymentAccounts",
+                    paymentAccountDao, paymentAccountDao.getByUUID(paymentAccountUUID).get(), bankDao, newBank);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        mapper.registerModule(new JavaTimeModule());
-        mapper.registerModule(simpleModule);
-
-        var json = mapper.writeValueAsString(paymentAccountDao.getByUUID(paymentAccountUUID).get());
-        System.out.println(json);
-
-//        paymentAccountDao.delete(paymentAccountDao.getByUUID(paymentAccountUUID).get());
-//
-//        PaymentAccount oldPaymentAccount = mapper.readValue(json, PaymentAccount.class);
-//
-//        paymentAccountDao.save(oldPaymentAccount);
-//
-//        paymentAccountDao.getAll().forEach(System.out::println);
+        System.out.println(newBank);
     }
 }

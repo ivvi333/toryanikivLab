@@ -35,8 +35,7 @@ public class Employee {
     private boolean canIssueCredit;
     private BigDecimal salary;
 
-    @JsonCreator
-    public Employee(@NonNull @JsonProperty("fullName") String fullName, @NonNull @JsonProperty("dateOfBirth") LocalDate dateOfBirth) {
+    public Employee(@NonNull String fullName, @NonNull LocalDate dateOfBirth) {
         this.uuid = UUID.randomUUID();
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;

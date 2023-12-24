@@ -26,12 +26,10 @@ public class CreditAccount extends Account {
     private PaymentAccount paymentAccount;
 
     @JsonCreator
-    public CreditAccount(@NonNull @JsonProperty("user") User user, @NonNull @JsonProperty("bank") Bank bank,
-                         @NonNull @JsonProperty("creditAssistant") Employee creditAssistant,
-                         @NonNull @JsonProperty("paymentAccount") PaymentAccount paymentAccount,
-                         @NonNull @JsonProperty("creditOpeningDate") LocalDate creditOpeningDate,
-                         @NonNull @JsonProperty("creditDurationInMonths") int creditDurationInMonths,
-                         @NonNull @JsonProperty("creditAmount") BigDecimal creditAmount)
+    public CreditAccount(@NonNull User user, @NonNull Bank bank,
+                         @NonNull Employee creditAssistant, @NonNull PaymentAccount paymentAccount,
+                         @NonNull LocalDate creditOpeningDate, @NonNull int creditDurationInMonths,
+                         @NonNull BigDecimal creditAmount)
     {
         super(user, bank);
         this.creditAssistant = creditAssistant;

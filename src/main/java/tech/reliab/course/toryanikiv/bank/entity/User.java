@@ -1,13 +1,10 @@
 package tech.reliab.course.toryanikiv.bank.entity;
 
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import tech.reliab.course.toryanikiv.bank.deserializer.CreditAccountHashMapDeserializer;
-import tech.reliab.course.toryanikiv.bank.deserializer.PaymentAccountHashMapDeserializer;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -28,13 +25,11 @@ public class User {
     private String job;
     private float monthlyIncome;
     private HashSet<String> bankNames;
-    private HashMap<UUID, CreditAccount> creditAccounts;
-    private HashMap<UUID, PaymentAccount> paymentAccounts;
+    @JsonIdentityReference(alwaysAsId = true) private HashMap<UUID, CreditAccount> creditAccounts;
+    @JsonIdentityReference(alwaysAsId = true) private HashMap<UUID, PaymentAccount> paymentAccounts;
     private float creditScore;
 
-    @JsonCreator
-    public User(@NonNull @JsonProperty("fullName") String fullName, @NonNull @JsonProperty("dateOfBirth") LocalDate dateOfBirth,
-                @NonNull @JsonProperty("job") String job) {
+    public User(@NonNull String fullName, @NonNull LocalDate dateOfBirth, @NonNull String job) {
         this.uuid = UUID.randomUUID();
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;

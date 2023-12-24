@@ -2,29 +2,45 @@ package tech.reliab.course.toryanikiv.bank.deserializer;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
-import tech.reliab.course.toryanikiv.bank.entity.*;
+import tech.reliab.course.toryanikiv.bank.dal.impl.BankDao;
+import tech.reliab.course.toryanikiv.bank.dal.impl.CreditAccountDao;
+import tech.reliab.course.toryanikiv.bank.entity.Bank;
+import tech.reliab.course.toryanikiv.bank.entity.CreditAccount;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
 
 public class CreditAccountDeserializer extends JsonDeserializer<CreditAccount> {
+    private final CreditAccountDao creditAccountDao;
+    private final BankDao bankDao;
+
+    public CreditAccountDeserializer(CreditAccountDao creditAccountDao, BankDao bankDao) {
+        this.creditAccountDao = creditAccountDao;
+        this.bankDao = bankDao;
+    }
+
     @Override
     public CreditAccount deserialize(JsonParser jp, DeserializationContext deserializationContext) throws IOException {
         ObjectMapper mapper = (ObjectMapper) jp.getCodec();
         if (jp.getCurrentToken().equals(JsonToken.START_OBJECT)) {
             JsonNode node = mapper.readTree(jp);
 
-            User user = mapper.treeToValue(node.get("user"), User.class);
-            Bank bank = mapper.treeToValue(node.get("bank"), Bank.class);
+            Optional<CreditAccount> creditAccountOrNull = creditAccountDao.getByUUID(UUID.fromString(node.get("uuid").asText()));
+            if (creditAccountOrNull.isEmpty()) {
+                throw new IllegalArgumentException("Input JSON does not contain existing CreditAccount.");
+            }
+            CreditAccount creditAccount = creditAccountOrNull.get();
 
-            LocalDate creditOpeningDate = mapper.treeToValue(node.get("creditOpeningDate"), LocalDate.class);
-            int creditDurationInMonths = node.get("creditDurationInMonths").asInt();
-            BigDecimal creditAmount = new BigDecimal(node.get("creditAmount").asText());
-            Employee creditAssistant = mapper.treeToValue(node.get("creditAssistant"), Employee.class);
-            PaymentAccount paymentAccount = mapper.treeToValue(node.get("paymentAccount"), PaymentAccount.class);
+            Optional<Bank> bankOptional = bankDao.getByUUID(UUID.fromString(node.get("bank").asText()));
+            if (bankOptional.isEmpty()) {
+                throw new IllegalArgumentException("Input JSON does not contain existing Bank.");
+            }
+            Bank bank = bankOptional.get();
 
-            return new CreditAccount(user, bank, creditAssistant, paymentAccount, creditOpeningDate, creditDurationInMonths, creditAmount);
+            creditAccount.setBank(bank);
+
+            return creditAccount;
         }
         else {
             throw new IllegalArgumentException("Input JSON is not a valid CreditAccount.");

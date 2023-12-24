@@ -18,8 +18,7 @@ import java.util.Objects;
 public class PaymentAccount extends Account {
     private BigDecimal balance;
 
-    @JsonCreator
-    public PaymentAccount(@NonNull @JsonProperty("user") User user, @NonNull @JsonProperty("bank") Bank bank) {
+    public PaymentAccount(@NonNull User user, @NonNull Bank bank) {
         super(user, bank);
         this.balance = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.DOWN);
     }

@@ -16,11 +16,10 @@ import java.util.UUID;
         scope = Account.class)
 public class Account {
     @Setter(AccessLevel.NONE) protected UUID uuid;
-    protected User user;
-    protected Bank bank;
+    @JsonIdentityReference(alwaysAsId = true) protected User user;
+    @JsonIdentityReference(alwaysAsId = true) protected Bank bank;
 
-    @JsonCreator
-    protected Account(@NonNull @JsonProperty("user") User user, @NonNull @JsonProperty("bank") Bank bank) {
+    protected Account(@NonNull User user, @NonNull Bank bank) {
         this.uuid = UUID.randomUUID();
         this.user = user;
         this.bank = bank;

@@ -32,10 +32,7 @@ public class BankOffice {
     private BigDecimal totalMoney;
     private BigDecimal leaseCost;
 
-    @JsonCreator
-    public BankOffice(@NonNull @JsonProperty("name") String name, @NonNull @JsonProperty("address") String address,
-                      @NonNull @JsonProperty("leaseCost") BigDecimal leaseCost)
-    {
+    public BankOffice(@NonNull String name, @NonNull String address, @NonNull BigDecimal leaseCost) {
         this.uuid = UUID.randomUUID();
         this.name = name;
         this.address = address;

@@ -34,8 +34,7 @@ public class BankAtm {
     private BigDecimal totalMoney;
     private BigDecimal maintenanceCost;
 
-    @JsonCreator
-    public BankAtm(@NonNull @JsonProperty("name") String name, @NonNull @JsonProperty("maintenanceCost") BigDecimal maintenanceCost) {
+    public BankAtm(@NonNull String name, @NonNull BigDecimal maintenanceCost) {
         this.uuid = UUID.randomUUID();
         this.name = name;
         this.address = "";

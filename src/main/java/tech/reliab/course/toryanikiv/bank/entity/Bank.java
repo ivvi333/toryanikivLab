@@ -28,8 +28,7 @@ public class Bank {
     private BigDecimal totalMoney;
     private float interestRate;
 
-    @JsonCreator
-    public Bank(@NonNull @JsonProperty("name") String name) {
+    public Bank(@NonNull String name) {
         this.uuid = UUID.randomUUID();
         this.name = name;
         this.bankOffices = new ArrayList<>();
