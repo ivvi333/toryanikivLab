@@ -28,9 +28,7 @@ public class User {
     private String job;
     private float monthlyIncome;
     private HashSet<String> bankNames;
-    @JsonDeserialize(using = CreditAccountHashMapDeserializer.class)
     private HashMap<UUID, CreditAccount> creditAccounts;
-    @JsonDeserialize(using = PaymentAccountHashMapDeserializer.class)
     private HashMap<UUID, PaymentAccount> paymentAccounts;
     private float creditScore;
 

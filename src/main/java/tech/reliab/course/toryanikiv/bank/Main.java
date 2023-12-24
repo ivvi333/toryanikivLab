@@ -15,6 +15,7 @@ import tech.reliab.course.toryanikiv.bank.service.impl.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class Main {
@@ -75,6 +76,8 @@ public class Main {
         simpleModule.addDeserializer(User.class, new UserDeserializer());
         simpleModule.addDeserializer(PaymentAccount.class, new PaymentAccountDeserializer());
         simpleModule.addDeserializer(CreditAccount.class, new CreditAccountDeserializer());
+        simpleModule.addDeserializer(HashMap.class, new CreditAccountHashMapDeserializer());
+        simpleModule.addDeserializer(HashMap.class, new PaymentAccountHashMapDeserializer());
 
         mapper.registerModule(new JavaTimeModule());
         mapper.registerModule(simpleModule);
@@ -82,12 +85,12 @@ public class Main {
         var json = mapper.writeValueAsString(paymentAccountDao.getByUUID(paymentAccountUUID).get());
         System.out.println(json);
 
-        paymentAccountDao.delete(paymentAccountDao.getByUUID(paymentAccountUUID).get());
-
-        PaymentAccount oldPaymentAccount = mapper.readValue(json, PaymentAccount.class);
-
-        paymentAccountDao.save(oldPaymentAccount);
-
-        paymentAccountDao.getAll().forEach(System.out::println);
+//        paymentAccountDao.delete(paymentAccountDao.getByUUID(paymentAccountUUID).get());
+//
+//        PaymentAccount oldPaymentAccount = mapper.readValue(json, PaymentAccount.class);
+//
+//        paymentAccountDao.save(oldPaymentAccount);
+//
+//        paymentAccountDao.getAll().forEach(System.out::println);
     }
 }
