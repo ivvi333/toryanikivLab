@@ -48,13 +48,13 @@ public class PaymentAccountServiceImpl implements PaymentAccountService {
         paymentAccountDao.delete(paymentAccount);
 
         user.getPaymentAccounts().remove(paymentAccount.getUuid());
-        bank.getPaymentAccounts().remove(paymentAccount);
-
         boolean isBankInUse = user.getPaymentAccounts().entrySet().stream()
                 .anyMatch(o -> Objects.equals(o.getValue().getBank().getName(), paymentAccount.getBank().getName()));
         if (!isBankInUse) {
             user.getBankNames().remove(paymentAccount.getBank().getName());
         }
+
+        bank.getPaymentAccounts().remove(paymentAccount);
 
         userDao.update(user);
         bankDao.update(bank);

@@ -10,6 +10,7 @@ import tech.reliab.course.toryanikiv.bank.service.CreditAccountService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 
 public class CreditAccountServiceImpl implements CreditAccountService {
@@ -43,6 +44,8 @@ public class CreditAccountServiceImpl implements CreditAccountService {
         user.getCreditAccounts().put(creditAccount.getUuid(), creditAccount);
         user.setCreditScore(user.getCreditScore() - 10f);
 
+        bank.getCreditAccounts().add(creditAccount);
+
         userDao.update(user);
         bankDao.update(bank);
 
@@ -61,6 +64,8 @@ public class CreditAccountServiceImpl implements CreditAccountService {
 
         user.getCreditAccounts().remove(creditAccount.getUuid());
         user.setCreditScore(user.getCreditScore() + 10f);
+
+        creditAccount.getBank().getCreditAccounts().remove(creditAccount);
 
         userDao.update(user);
         bankDao.update(creditAccount.getBank());

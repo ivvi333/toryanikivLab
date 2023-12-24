@@ -148,13 +148,15 @@ public class UserServiceImpl implements UserService {
         userDao.update(paymentAccount.getUser());
         bankDao.update(bank);
 
-        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        try {
-            mapper.writeValue(
-                    new File(paymentAccountsDirPath, "PaymentAccount-" + paymentAccount.getUuid().toString() + ".json"),
-                    paymentAccount);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (!paymentAccountsDirPath.isBlank()) {
+            ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+            try {
+                mapper.writeValue(
+                        new File(paymentAccountsDirPath, "PaymentAccount-" + paymentAccount.getUuid().toString() + ".json"),
+                        paymentAccount);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         return true;
@@ -204,13 +206,15 @@ public class UserServiceImpl implements UserService {
         userDao.update(creditAccount.getUser());
         bankDao.update(bank);
 
-        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        try {
-            mapper.writeValue(
-                    new File(creditAccountsDirPath, "CreditAccount-" + creditAccount.getUuid().toString() + ".json"),
-                    creditAccount);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (!creditAccountsDirPath.isBlank()) {
+            ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+            try {
+                mapper.writeValue(
+                        new File(creditAccountsDirPath, "CreditAccount-" + creditAccount.getUuid().toString() + ".json"),
+                        creditAccount);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         return true;
