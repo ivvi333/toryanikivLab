@@ -2,8 +2,9 @@ package tech.reliab.course.toryanikiv.bank.service;
 
 import lombok.NonNull;
 import tech.reliab.course.toryanikiv.bank.entity.BankAtm;
+import tech.reliab.course.toryanikiv.bank.exceptions.BankAtmStatusException;
 
 public interface BankAtmService {
-    boolean closeForMaintenance(@NonNull BankAtm bankAtm);
-    boolean openAfterMaintenance(@NonNull BankAtm bankAtm);
+    void closeForMaintenance(@NonNull BankAtm bankAtm) throws BankAtmStatusException;
+    void openAfterMaintenance(@NonNull BankAtm bankAtm) throws BankAtmStatusException;
 }

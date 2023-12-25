@@ -5,6 +5,7 @@ import tech.reliab.course.toryanikiv.bank.dal.impl.BankDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.BankOfficeDao;
 import tech.reliab.course.toryanikiv.bank.entity.Bank;
 import tech.reliab.course.toryanikiv.bank.entity.BankOffice;
+import tech.reliab.course.toryanikiv.bank.exceptions.BankInsufficientFundsException;
 import tech.reliab.course.toryanikiv.bank.service.BankOfficeService;
 import tech.reliab.course.toryanikiv.bank.service.BankService;
 
@@ -20,7 +21,7 @@ public class BankServiceImpl implements BankService {
     @Override
     public boolean addOffice(@NonNull Bank bank, @NonNull BankOfficeDao bankOfficeDao, @NonNull BankOffice bankOffice, @NonNull BigDecimal initialTotalMoney) {
         if (bank.getTotalMoney().compareTo(initialTotalMoney) < 0) {
-            return false;
+            throw new BankInsufficientFundsException(bank.getUuid(), "addOffice");
         }
 
         bankOffice.setBank(bank);
@@ -33,6 +34,7 @@ public class BankServiceImpl implements BankService {
         }
 
         bank.getBankOffices().add(bankOffice);
+        bank.setTotalMoney(bank.getTotalMoney().subtract(initialTotalMoney));
 
         bankDao.update(bank);
         bankOfficeDao.update(bankOffice);

@@ -5,6 +5,7 @@ import tech.reliab.course.toryanikiv.bank.dal.impl.BankAtmDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.BankDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.BankOfficeDao;
 import tech.reliab.course.toryanikiv.bank.entity.BankAtm;
+import tech.reliab.course.toryanikiv.bank.exceptions.BankAtmStatusException;
 import tech.reliab.course.toryanikiv.bank.service.BankAtmService;
 
 import java.math.BigDecimal;
@@ -21,9 +22,9 @@ public class BankAtmServiceImpl implements BankAtmService {
     }
 
     @Override
-    public boolean closeForMaintenance(@NonNull BankAtm bankAtm) {
+    public void closeForMaintenance(@NonNull BankAtm bankAtm) {
         if (bankAtm.getStatus() == BankAtm.BankAtmStatus.OUT_OF_SERVICE) {
-            return false;
+            throw new BankAtmStatusException(bankAtm.getUuid(), bankAtm.getStatus());
         }
 
         bankAtm.setDepositAvailable(false);
@@ -33,14 +34,12 @@ public class BankAtmServiceImpl implements BankAtmService {
         bankAtmDao.update(bankAtm);
         bankOfficeDao.update(bankAtm.getBankOffice());
         bankDao.update(bankAtm.getBankOffice().getBank());
-
-        return true;
     }
 
     @Override
-    public boolean openAfterMaintenance(@NonNull BankAtm bankAtm) {
+    public void openAfterMaintenance(@NonNull BankAtm bankAtm) {
         if (bankAtm.getStatus() != BankAtm.BankAtmStatus.OUT_OF_SERVICE) {
-            return false;
+            throw new BankAtmStatusException(bankAtm.getUuid(), bankAtm.getStatus());
         }
 
         bankAtm.setDepositAvailable(true);
@@ -57,7 +56,5 @@ public class BankAtmServiceImpl implements BankAtmService {
         bankAtmDao.update(bankAtm);
         bankOfficeDao.update(bankAtm.getBankOffice());
         bankDao.update(bankAtm.getBankOffice().getBank());
-
-        return true;
     }
 }
