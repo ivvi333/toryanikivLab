@@ -74,11 +74,14 @@ public class Main {
 
                     for (int accountID = personID * accountCount; accountID < personID * accountCount + accountCount; accountID++) {
                         UUID paymentAccountUUID = paymentAccountService.openPaymentAccount(user, bank);
-                        creditAccountService.openCreditAccount(user, bank, assistant,
-                                paymentAccountDao.getByUUID(paymentAccountUUID).get(),
-                                LocalDate.now(), 4, BigDecimal.valueOf(1000));
                     }
                 }
+            }
+        }
+
+        for (User user : userDao.getAll().toList()) {
+            for (int creditAccount = 0; creditAccount < accountCount; creditAccount++) {
+                creditAccountService.openCreditAccount(user, LocalDate.now(), 4, BigDecimal.valueOf(1000), paymentAccountService);
             }
         }
 

@@ -8,6 +8,10 @@ import tech.reliab.course.toryanikiv.bank.dal.impl.EmployeeDao;
 import tech.reliab.course.toryanikiv.bank.entity.BankAtm;
 import tech.reliab.course.toryanikiv.bank.entity.BankOffice;
 import tech.reliab.course.toryanikiv.bank.entity.Employee;
+import tech.reliab.course.toryanikiv.bank.exceptions.BankAtmStatusException;
+import tech.reliab.course.toryanikiv.bank.exceptions.BankInsufficientFundsException;
+import tech.reliab.course.toryanikiv.bank.exceptions.BankOfficeBankIsNullException;
+import tech.reliab.course.toryanikiv.bank.exceptions.BankOfficeNoAtmSpaceException;
 import tech.reliab.course.toryanikiv.bank.service.BankAtmService;
 import tech.reliab.course.toryanikiv.bank.service.BankOfficeService;
 import tech.reliab.course.toryanikiv.bank.service.EmployeeService;
@@ -24,13 +28,17 @@ public class BankOfficeServiceImpl implements BankOfficeService {
     }
 
     @Override
-    public boolean addAtm(@NonNull BankOffice bankOffice, @NonNull BankAtmDao bankAtmDao, @NonNull BankAtm bankAtm,
+    public void addAtm(@NonNull BankOffice bankOffice, @NonNull BankAtmDao bankAtmDao, @NonNull BankAtm bankAtm,
                           @NonNull Employee operator, @NonNull BigDecimal initialTotalMoney)
     {
-        if (!bankOffice.isAtmPlaceable() || bankOffice.getBank() == null
-            || bankOffice.getBank().getTotalMoney().compareTo(initialTotalMoney) < 0)
-        {
-            return false;
+        if (!bankOffice.isAtmPlaceable()) {
+            throw new BankOfficeNoAtmSpaceException(bankOffice.getUuid());
+        }
+        else if (bankOffice.getBank() == null) {
+            throw new BankOfficeBankIsNullException(bankOffice.getUuid());
+        }
+        else if (bankOffice.getBank().getTotalMoney().compareTo(initialTotalMoney) < 0) {
+            throw new BankInsufficientFundsException(bankOffice.getBank().getUuid(), "addAtm");
         }
 
         bankAtm.setAddress(bankOffice.getAddress());
@@ -39,66 +47,61 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         bankAtm.setTotalMoney(initialTotalMoney);
 
         BankAtmService bankAtmService = new BankAtmServiceImpl(bankAtmDao, bankDao, bankOfficeDao);
-        if (!bankAtmService.openAfterMaintenance(bankAtm)) {
-            return false;
-        }
+        bankAtmService.openAfterMaintenance(bankAtm);
 
         bankOffice.getBankAtms().add(bankAtm);
+        bankOffice.getBank().setTotalMoney(bankOffice.getBank().getTotalMoney().subtract(initialTotalMoney));
 
         bankOfficeDao.update(bankOffice);
         bankDao.update(bankOffice.getBank());
         bankAtmDao.update(bankAtm);
-
-        return true;
     }
 
     @Override
-    public boolean deleteAtm(@NonNull BankOffice bankOffice, @NonNull BankAtmDao bankAtmDao, @NonNull BankAtm bankAtm) {
+    public void deleteAtm(@NonNull BankOffice bankOffice, @NonNull BankAtmDao bankAtmDao, @NonNull BankAtm bankAtm) {
+        if (bankOffice.getBank() == null) {
+            throw new BankOfficeBankIsNullException(bankOffice.getUuid());
+        }
+
         bankAtm.setAddress("");
         bankAtm.setBankOffice(null);
         bankAtm.setOperator(null);
+
+        bankOffice.getBank().setTotalMoney(bankOffice.getBank().getTotalMoney().add(bankAtm.getTotalMoney()));
         bankAtm.setTotalMoney(BigDecimal.ZERO);
 
         BankAtmService bankAtmService = new BankAtmServiceImpl(bankAtmDao, bankDao, bankOfficeDao);
-        if (!bankAtmService.closeForMaintenance(bankAtm)) {
-            return false;
-        }
+        bankAtmService.closeForMaintenance(bankAtm);
 
         bankOffice.getBankAtms().remove(bankAtm);
 
         bankOfficeDao.update(bankOffice);
         bankDao.update(bankOffice.getBank());
         bankAtmDao.update(bankAtm);
-
-        return true;
     }
 
     @Override
-    public boolean addEmployee(@NonNull BankOffice bankOffice, @NonNull EmployeeDao employeeDao, @NonNull Employee employee, Employee.@NonNull EmployeeOccupation employeeOccupation) {
+    public void addEmployee(@NonNull BankOffice bankOffice, @NonNull EmployeeDao employeeDao, @NonNull Employee employee, Employee.@NonNull EmployeeOccupation employeeOccupation) {
         if (bankOffice.getBank() == null) {
-            return false;
+            throw new BankOfficeBankIsNullException(bankOffice.getUuid());
         }
 
         employee.setBankOffice(bankOffice);
 
         EmployeeService employeeService = new EmployeeServiceImpl(employeeDao, bankDao, bankOfficeDao);
-        if (!employeeService.changeOccupation(employee, employeeOccupation)) {
-            return false;
-        }
+        employeeService.changeOccupation(employee, employeeOccupation);
 
         bankOffice.getEmployees().add(employee);
 
         bankOfficeDao.update(bankOffice);
         bankDao.update(bankOffice.getBank());
         employeeDao.update(employee);
-
-        return true;
     }
 
     @Override
-    public boolean deleteEmployee(@NonNull BankOffice bankOffice, @NonNull EmployeeDao employeeDao, @NonNull Employee employee) {
+    public void deleteEmployee(@NonNull BankOffice bankOffice, @NonNull EmployeeDao employeeDao, @NonNull Employee employee) {
         if (bankOffice.getBank() == null) {
-            return false;
+            throw new BankOfficeBankIsNullException(bankOffice.getUuid());
         }
 
         employee.setBankOffice(null);
@@ -112,8 +115,6 @@ public class BankOfficeServiceImpl implements BankOfficeService {
         bankOfficeDao.update(bankOffice);
         bankDao.update(bankOffice.getBank());
         employeeDao.update(employee);
-
-        return true;
     }
 
     @Override

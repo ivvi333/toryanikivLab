@@ -5,6 +5,7 @@ import tech.reliab.course.toryanikiv.bank.dal.impl.BankDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.BankOfficeDao;
 import tech.reliab.course.toryanikiv.bank.dal.impl.EmployeeDao;
 import tech.reliab.course.toryanikiv.bank.entity.Employee;
+import tech.reliab.course.toryanikiv.bank.exceptions.EmployeeOccupationException;
 import tech.reliab.course.toryanikiv.bank.service.EmployeeService;
 
 import java.math.BigDecimal;
@@ -21,9 +22,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public boolean changeOccupation(@NonNull Employee employee, Employee.@NonNull EmployeeOccupation employeeOccupation) {
+    public void changeOccupation(@NonNull Employee employee, Employee.@NonNull EmployeeOccupation employeeOccupation) {
         if (employee.getOccupation() == employeeOccupation) {
-            return false;
+            throw new EmployeeOccupationException(employee.getUuid(), employeeOccupation);
         }
 
         switch (employeeOccupation) {
@@ -39,8 +40,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeDao.update(employee);
         bankOfficeDao.update(employee.getBankOffice());
         bankDao.update(employee.getBankOffice().getBank());
-
-        return true;
     }
 
     @Override
